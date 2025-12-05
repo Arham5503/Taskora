@@ -2,8 +2,61 @@ import reactLogo from "../assets/react.svg";
 import desk from "../assets/desk.jpg";
 import { LayoutTemplate, Users, CircleDollarSign, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "react-toastify";
 
 function Login() {
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Server sending
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const { username, email, password, confirmPassword } = formData;
+      if (!username || !email || !password) {
+        toast.warning("Please Fill all required fields");
+        return;
+      } else if (password !== confirmPassword) {
+        toast.error("Password not matched");
+        return;
+      }
+      const payload = { username, email, password };
+      const res = await fetch("http://localhost:2004/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams(payload),
+      });
+      if (res.ok) {
+        toast.success("Signed Up successfully!");
+        resetform();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Signup failed");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong!");
+    }
+  };
+  const resetform = () => {
+    setFormData({
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+  };
   return (
     <main className="h-screen flex flex-col bg-white font-sans">
       {/* Navbar */}
@@ -34,9 +87,9 @@ function Login() {
       </header>
 
       {/* Main Content */}
-      <section className="flex flex-1 py-4">
+      <section className="flex flex-1 flex-col justify-center md:justify-between md:flex-row py-4">
         {/* Left Side - Login Form */}
-        <div className="w-1/2 flex flex-col justify-center items-center bg-white px-16">
+        <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-white px-16">
           <div className="w-full max-w-sm">
             <h2 className="text-3xl font-bold mb-1">Welcome to Taskora</h2>
             <p className="text-gray-600 mb-6">Sign up to continue</p>
@@ -69,31 +122,43 @@ function Login() {
             </div>
 
             <div className="border-t border-gray-200 my-6" />
-
-            <form className="space-y-4">
+            {/* Form Insertion */}
+            <form className="space-y-4" method="post" onSubmit={handleSubmit}>
               <input
                 type="text"
                 placeholder="Username"
+                name="username"
+                onChange={handleChange}
+                value={formData.username}
                 className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
               />
               <input
                 type="email"
                 placeholder="Email"
+                name="email"
+                onChange={handleChange}
+                value={formData.email}
                 className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
               />
               <input
                 type="password"
                 placeholder="Password"
+                name="password"
+                onChange={handleChange}
+                value={formData.password}
                 className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
               />
               <input
                 type="password"
                 placeholder="Re-enter Password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
                 className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
               />
               <button
                 type="submit"
-                className="w-full bg-[#105EF5] text-white py-2 rounded-md font-semibold hover:bg-[#0d4ed1]"
+                className="w-full bg-[#105EF5] text-white py-2 rounded-md font-semibold hover:bg-[#0d4ed1] cursor-pointer"
               >
                 Sign up
               </button>
@@ -119,7 +184,7 @@ function Login() {
             </p>
           </div>
         </div>
-        <div className="w-1/2 h-full overflow-hidden rounded-l-3xl">
+        <div className="hidden md:block w-1/2 h-full overflow-hidden rounded-l-3xl">
           <img
             src={desk}
             alt="Laptop desk"
