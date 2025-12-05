@@ -26,9 +26,9 @@ function Login() {
             <Lock size={18} /> Log in
           </a>
         </nav> */}
-        <Link to="/signup">
+        <Link to={"/login"}>
           <button className="bg-[#105EF5] text-white px-5 py-2 rounded-lg hover:bg-[#0d4ed1]">
-            Sign Up
+            Sign in
           </button>
         </Link>
       </header>
@@ -38,8 +38,8 @@ function Login() {
         {/* Left Side - Login Form */}
         <div className="w-1/2 flex flex-col justify-center items-center bg-white px-16">
           <div className="w-full max-w-sm">
-            <h2 className="text-3xl font-bold mb-1">Welcome Back</h2>
-            <p className="text-gray-600 mb-6">Sign in to continue</p>
+            <h2 className="text-3xl font-bold mb-1">Welcome to Taskora</h2>
+            <p className="text-gray-600 mb-6">Sign up to continue</p>
 
             <div className="space-y-3 mb-6">
               <button className="w-full border border-gray-300 py-2 rounded-md flex items-center justify-center gap-2 hover:bg-gray-100">
@@ -72,6 +72,11 @@ function Login() {
 
             <form className="space-y-4">
               <input
+                type="text"
+                placeholder="Username"
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
+              />
+              <input
                 type="email"
                 placeholder="Email"
                 className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
@@ -81,11 +86,16 @@ function Login() {
                 placeholder="Password"
                 className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
               />
+              <input
+                type="password"
+                placeholder="Re-enter Password"
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
+              />
               <button
                 type="submit"
                 className="w-full bg-[#105EF5] text-white py-2 rounded-md font-semibold hover:bg-[#0d4ed1]"
               >
-                Sign in
+                Sign up
               </button>
             </form>
 
@@ -102,9 +112,9 @@ function Login() {
             </p>
 
             <p className="mt-6 text-gray-600 text-sm">
-              Create an account{" "}
+              Already have an account?{" "}
               <Link to="/signup" className="text-[#105EF5] font-medium">
-                Signup
+                Sign in
               </Link>
             </p>
           </div>

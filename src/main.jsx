@@ -11,12 +11,14 @@ import Layout from "./Components/Layout.jsx";
 import Login from "./Components/Login.jsx";
 import PricingModal from "./Components/PricingModal.jsx";
 import HomeScreen from "./Components/HomeScreen.jsx";
+import Signup from "./Components/Signup.jsx";
 import "./App.css";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<HomeScreen />} />
         <Route path="pricing" element={<PricingModal />} />
