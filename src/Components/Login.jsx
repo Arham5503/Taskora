@@ -1,9 +1,43 @@
 import reactLogo from "../assets/react.svg";
 import desk from "../assets/desk.jpg";
 import { LayoutTemplate, Users, CircleDollarSign, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "react-toastify";
 
 function Login() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  console.log(formData);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:2004/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams(formData),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        navigate("/home");
+        return toast.success("Logged In Successfully!");
+      } else {
+        toast.error(data.message || "Login failed. Please check credentials.");
+      }
+    } catch (error) {
+      console.error("Error logging in:", error);
+      toast.error("Something went wrong. Try again later.");
+    }
+  };
   return (
     <main className="h-screen flex flex-col bg-white font-sans">
       {/* Navbar */}
@@ -70,20 +104,24 @@ function Login() {
 
             <div className="border-t border-gray-200 my-6" />
 
-            <form className="space-y-4">
+            <form className="space-y-4" method="post" onSubmit={handleSubmit}>
               <input
                 type="email"
                 placeholder="Email"
+                name="email"
+                onChange={handleChange}
                 className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
               />
               <input
                 type="password"
                 placeholder="Password"
+                name="password"
+                onChange={handleChange}
                 className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
               />
               <button
                 type="submit"
-                className="w-full bg-[#105EF5] text-white py-2 rounded-md font-semibold hover:bg-[#0d4ed1]"
+                className="w-full cursor-pointer bg-[#105EF5] text-white py-2 rounded-md font-semibold hover:bg-[#0d4ed1]"
               >
                 Sign in
               </button>

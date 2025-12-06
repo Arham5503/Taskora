@@ -23,11 +23,9 @@ function Login() {
     try {
       const { username, email, password, confirmPassword } = formData;
       if (!username || !email || !password) {
-        toast.warning("Please Fill all required fields");
-        return;
+        return toast.warning("Please Fill all required fields");
       } else if (password !== confirmPassword) {
-        toast.error("Password not matched");
-        return;
+        return toast.error("Password not matched");
       }
       const payload = { username, email, password };
       const res = await fetch("http://localhost:2004/api/signup", {
@@ -37,16 +35,16 @@ function Login() {
         },
         body: new URLSearchParams(payload),
       });
+      const data = await res.json();
       if (res.ok) {
         toast.success("Signed Up successfully!");
-        resetform();
+        return resetform();
       } else {
-        const data = await res.json();
-        toast.error(data.message || "Signup failed");
+        return toast.error(data.message || "Signup failed");
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong!");
+      return toast.error("Something went wrong!");
     }
   };
   const resetform = () => {
