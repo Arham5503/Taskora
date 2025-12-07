@@ -15,7 +15,7 @@ function Sidebar() {
   return (
     <>
       <aside className="sidebar flex flex-col w-[20%] p-4 justify-between h-screen shadow-xl">
-        <img src={reactLogo} width={45} alt="" />
+        <img src="../public/Logo.png" width={45} alt="" />
         <ul className="flex flex-col p-2 my-4 gap-2.5">
           <li className="flex text-[#6d7178] gap-2 cursor-pointer">
             <Home />{" "}
