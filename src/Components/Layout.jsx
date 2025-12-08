@@ -1,7 +1,5 @@
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import HomeScreen from "./HomeScreen";
-import PricingModal from "./PricingModal";
 
 import { Outlet } from "react-router-dom";
 

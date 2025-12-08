@@ -27,8 +27,10 @@ function Login() {
         body: new URLSearchParams(formData),
       });
       const data = await res.json();
+      const token = data.accessToken;
+      localStorage.setItem("token", token);
       if (res.ok) {
-        navigate("/home");
+        navigate("/dashboard");
         return toast.success("Logged In Successfully!");
       } else {
         toast.error(data.message || "Login failed. Please check credentials.");
@@ -43,23 +45,8 @@ function Login() {
       {/* Navbar */}
       <header className="w-[90%] mx-auto py-5 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <img src={reactLogo} alt="logo" className="w-8 h-8" />
-          <h1 className="font-semibold text-lg">planit</h1>
+          <img src="Logo.png" alt="PlanOra Logo" className="w-40" />
         </div>
-        {/* <nav className="flex items-center gap-8 text-gray-700 font-medium">
-          <a href="#" className="flex items-center gap-1 hover:text-[#105EF5]">
-            <LayoutTemplate size={18} /> Templates
-          </a>
-          <a href="#" className="flex items-center gap-1 hover:text-[#105EF5]">
-            <Users size={18} /> For teams
-          </a>
-          <a href="#" className="flex items-center gap-1 hover:text-[#105EF5]">
-            <CircleDollarSign size={18} /> Pricing
-          </a>
-          <a href="#" className="flex items-center gap-1 hover:text-[#105EF5]">
-            <Lock size={18} /> Log in
-          </a>
-        </nav> */}
         <Link to="/signup">
           <button className="bg-[#105EF5] text-white px-5 py-2 rounded-lg hover:bg-[#0d4ed1]">
             Sign Up
