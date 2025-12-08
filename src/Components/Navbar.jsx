@@ -11,6 +11,12 @@ function Navbar() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+  const scrollTo = (e) => {
+    return document.getElementById(e).scrollIntoView({
+      behavior: "smooth",
+    });
+  };
+
   return (
     <header>
       <nav
@@ -26,10 +32,34 @@ function Navbar() {
 
           {/* Nav Links */}
           <ul className="hidden md:flex gap-8 font-medium text-gray-700 [&>li]:hover:text-indigo-500 [&>li]:transition [&>li]:cursor-pointer">
-            <li>Home</li>
-            <li>Features</li>
-            <li>Pricing</li>
-            <li>Contact</li>
+            <li
+              onClick={() => {
+                scrollTo("Home");
+              }}
+            >
+              Home
+            </li>
+            <li
+              onClick={() => {
+                scrollTo("features");
+              }}
+            >
+              Features
+            </li>
+            <li
+              onClick={() => {
+                scrollTo("faq");
+              }}
+            >
+              FAQ's
+            </li>
+            <li
+              onClick={() => {
+                scrollTo("contact");
+              }}
+            >
+              Contact
+            </li>
           </ul>
 
           {/* Buttons */}

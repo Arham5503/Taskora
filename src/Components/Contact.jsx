@@ -1,6 +1,9 @@
 function Conatct() {
   return (
-    <div class="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+    <div
+      id="contact"
+      class="min-h-screen bg-gray-100 flex items-center justify-center p-6"
+    >
       <div class="bg-white shadow-xl rounded-2xl p-8 max-w-lg w-full border border-gray-200">
         <h2 class="text-3xl font-bold text-gray-900 mb-2 text-center">
           Contact Us

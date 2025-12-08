@@ -1,6 +1,6 @@
 function Feature() {
   return (
-    <section className="py-20 bg-white">
+    <section id="features" className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-6">
         {/* Heading */}
         <div className="text-center mb-16">

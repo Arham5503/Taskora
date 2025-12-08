@@ -10,10 +10,9 @@ function Hero() {
         className="absolute inset-0 z-0 opacity-90"
         style={{
           backgroundImage: `
-    radial-gradient(circle at 20% 20%, rgba(99,102,241,0.25), transparent 70%),
-    radial-gradient(circle at 80% 30%, rgba(167,139,250,0.25), transparent 70%),
-    linear-gradient(120deg, #F9FAFB 0%, #FFFFFF 40%, #F9FAFB 100%)
-  `,
+         radial-gradient(circle at 20% 20%, rgba(99,102,241,0.25), transparent 70%),
+         radial-gradient(circle at 80% 30%, rgba(167,139,250,0.25), transparent 70%),
+         linear-gradient(120deg, #F9FAFB 0%, #FFFFFF 40%, #F9FAFB 100%)`,
           backgroundSize: "cover",
         }}
       />
@@ -34,7 +33,7 @@ function Hero() {
 
         <div className="flex flex-wrap justify-center gap-4">
           <Link
-            to={"/register"}
+            to={"/signup"}
             className="px-8 py-3 bg-violet-400 text-black font-semibold rounded-full shadow-md hover:bg-violet-500 hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:scale-105 hover:text-white"
           >
             Get Started Free

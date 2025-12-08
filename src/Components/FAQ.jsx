@@ -37,7 +37,7 @@ export default function FAQ() {
   };
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section id="faq" className="py-20 bg-gray-50">
       <div className="max-w-6xl mx-auto px-6">
         <h2 className="text-3xl md:text-4xl font-heading font-semibold text-gray-900 text-center mb-12">
           Frequently Asked Questions
