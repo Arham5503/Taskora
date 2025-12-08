@@ -29,7 +29,7 @@ function Hero() {
 
         <p className="font-body text-base md:text-lg text-gray-700 max-w-2xl mx-auto mb-10">
           Plan smarter, manage tasks with clarity, and stay ahead of deadlines.
-          Taskora gives you the tools to stay organized—without the overwhelm.
+          Taskora gives you the tools to stay organized without the overwhelm.
         </p>
 
         <div className="flex flex-wrap justify-center gap-4">

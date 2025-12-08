@@ -21,7 +21,7 @@ function Navbar() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <img src="../public/Logo.png" alt="PlanOra Logo" className="w-40" />
+            <img src="/Logo.png" alt="PlanOra Logo" className="w-40" />
           </div>
 
           {/* Nav Links */}
