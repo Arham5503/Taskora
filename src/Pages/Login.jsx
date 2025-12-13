@@ -1,4 +1,3 @@
-import reactLogo from "../assets/react.svg";
 import desk from "../assets/desk.jpg";
 import { LayoutTemplate, Users, CircleDollarSign, Lock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -29,12 +28,16 @@ function Login() {
       const data = await res.json();
       const token = data.accessToken;
       localStorage.setItem("token", token);
+
       if (res.ok) {
         navigate("/dashboard");
         return toast.success("Logged In Successfully!");
       } else {
-        toast.error(data.message || "Login failed. Please check credentials.");
+        toast.error(data.message || " hello world");
       }
+      // else {
+      //   toast.error(data.message || "Login failed. Please check credentials.");
+      // }
     } catch (error) {
       console.error("Error logging in:", error);
       toast.error("Something went wrong. Try again later.");
@@ -142,6 +145,12 @@ function Login() {
           />
         </div>
       </section>
+      <button
+        className="border-2 my-5"
+        onClick={() => toast.success("Hello world!")}
+      >
+        Test Toast
+      </button>
     </main>
   );
 }
