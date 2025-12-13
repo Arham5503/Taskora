@@ -1,5 +1,8 @@
-import { Search, CirclePlus, Bell, User } from "lucide-react";
+import { Search, CirclePlus, Bell, User, Sun, Moon } from "lucide-react";
+import { useContext } from "react";
+import { AppSettingsContext } from "../Context/ThemeContext";
 function Header() {
+  const { isDark, toggleTheme, colors } = useContext(AppSettingsContext);
   return (
     <>
       <header className=" px-5 shadow-md">
@@ -17,6 +20,7 @@ function Header() {
                 className="w-full pl-9 pr-3 py-2 border rounded-2xl focus:outline-none"
               />
             </div>
+            <div>{isDark ? <Sun /> : <Moon />}</div>
             <div>
               <CirclePlus />
             </div>

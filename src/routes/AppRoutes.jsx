@@ -10,42 +10,33 @@ import Login from "../Pages/Login.jsx";
 import Signup from "../Pages/Signup.jsx";
 import LandingPage from "../Pages/LandingPage.jsx";
 import PricingModal from "../Components/PricingModal.jsx";
-import HomeScreen from "../Components/HomeScreen.jsx";
+import Dashboard from "../Pages/Dashboard.jsx";
+import ProjectsPage from "../Pages/ProjectsPage.jsx";
 
 const ProtectedRoute = ({ children }) => {
-  const auth = localStorage.getItem("token"); // change logic if needed
-  return auth ? children : <Navigate to="/login" replace />;
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/login" replace />;
 };
 
 const AppRoutes = createBrowserRouter(
   createRoutesFromElements(
     <>
-      {/* Public Routes */}
+      {/* PUBLIC */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      {/* Protected Routes */}
+      {/* PROTECTED LAYOUT */}
       <Route
-        path="/pricing"
-        element={
-          <ProtectedRoute>
-            <PricingModal />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/dashboard"
         element={
           <ProtectedRoute>
             <Layout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<HomeScreen />} />
-        <Route path="pricing" element={<PricingModal />} />
-        <Route path="home" element={<HomeScreen />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/project" element={<ProjectsPage />} />
+        <Route path="/pricing" element={<PricingModal />} />
       </Route>
     </>
   )
