@@ -56,11 +56,18 @@ function Dashboard() {
         <section className="flex justify-between p-2 [&>div]:flex [&>div]:flex-col [&>div]:space-y-2 [&>div]:p-3">
           {analyticsMock.map((analytic) => (
             <div
-              className="rounded-md border border-[#E5E5E5] min-w-52"
-              //   style={{ boxShadow: "rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px" }}
+              style={{
+                background: colors.cards,
+                border: `1px solid ${colors.border}`,
+                color: colors.text,
+              }}
+              className="rounded-md border min-w-52"
             >
               <div className="flex justify-between items-center">
-                <div className="w-10 h-10 p-2 rounded-full bg-[#DBEAFE] text-[#2563EB]">
+                <div
+                  className="w-10 h-10 p-2 rounded-full bg-[#DBEAFE] "
+                  style={{ color: colors.primary }}
+                >
                   {analytic.icon1}
                 </div>
                 <span className="flex gap-1 text-green-600">
@@ -73,7 +80,12 @@ function Dashboard() {
               >
                 {analytic.title}
               </h2>
-              <h1 className="font-bold text-3xl">{analytic.numbers}</h1>
+              <h1
+                className="font-bold text-3xl"
+                style={{ color: colors.boldText }}
+              >
+                {analytic.numbers}
+              </h1>
               <h3 className=" text-[14px]" style={{ color: colors.text }}>
                 {analytic.from}
               </h3>

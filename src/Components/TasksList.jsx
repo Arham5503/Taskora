@@ -1,12 +1,11 @@
-import React from "react";
-
+import { Link } from "react-router-dom";
 const tasksData = [
   {
     category: "Figma Design System",
     tasks: [
       {
         title: "Create component documentation",
-        time: "Today, 2:00 PM",
+        time: "2025-12-24T06:33:54.000Z",
         priority: "high",
         assigned: [
           "https://randomuser.me/api/portraits/men/32.jpg",
@@ -16,7 +15,7 @@ const tasksData = [
       },
       {
         title: "Design system color palette update",
-        time: "Today, 10:00 AM",
+        time: "2025-12-22T08:13:54.000Z",
         priority: "medium",
         assigned: ["https://randomuser.me/api/portraits/men/32.jpg"],
         completed: true,
@@ -28,7 +27,7 @@ const tasksData = [
     tasks: [
       {
         title: "Fix navigation component responsive issues",
-        time: "Today, 4:00 PM",
+        time: "2025-12-20T00:00:00.000Z",
         priority: "high",
         assigned: ["https://randomuser.me/api/portraits/women/65.jpg"],
         completed: false,
@@ -48,9 +47,12 @@ const TaskList = () => {
     <div className="p-6 max-w-2xl bg-white rounded-lg shadow">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-medium">My Tasks</h2>
-        <button className="px-3 py-2 border-[#E5E5E5] border rounded text-sm font-medium">
+        <Link
+          to="/tasks"
+          className="px-3 py-2 border-[#E5E5E5] border rounded text-sm font-medium"
+        >
           View All Tasks
-        </button>
+        </Link>
       </div>
 
       <div className="mb-4">

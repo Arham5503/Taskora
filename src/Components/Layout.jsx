@@ -1,22 +1,37 @@
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { AppSettingsProvider } from "../Context/ThemeContext";
-
+import {
+  AppSettingsProvider,
+  AppSettingsContext,
+} from "../Context/ThemeContext";
 import { Outlet } from "react-router-dom";
+import { useContext } from "react";
+
+function AppContent() {
+  const { colors } = useContext(AppSettingsContext);
+
+  return (
+    <div className="app-container flex h-screen">
+      <Sidebar />
+      <div className="main-content flex-1 flex flex-col">
+        <Header />
+        <div
+          className="page-content flex-1 p-5 overflow-auto"
+          style={{ backgroundColor: colors.background }}
+        >
+          <Outlet />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Layout() {
   return (
     <AppSettingsProvider>
-      <div className="app-container">
-        <Sidebar />
-        <div className="main-content">
-          <Header />
-          <div className="page-content">
-            <Outlet />
-          </div>
-        </div>
-      </div>
+      <AppContent />
     </AppSettingsProvider>
   );
 }
+
 export default Layout;

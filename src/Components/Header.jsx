@@ -1,34 +1,62 @@
 import { Search, CirclePlus, Bell, User, Sun, Moon } from "lucide-react";
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
+import { useLocation } from "react-router-dom";
+
 function Header() {
   const { isDark, toggleTheme, colors } = useContext(AppSettingsContext);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname.split("/")[1];
+    setActiveTab(path || "dashboard");
+  }, [location.pathname]);
+
   return (
     <>
-      <header className=" px-5 shadow-md">
+      <header
+        style={{ backgroundColor: colors.background }}
+        className="px-5 shadow-md"
+      >
         <nav className="flex justify-between items-center py-3">
-          <h1 className="text-[18px] border-blue-600 border-b-2">Plans</h1>
+          <h1
+            style={{ color: colors.text }}
+            className="text-[18px] border-blue-600 border-b-2 first-letter:uppercase lowercase"
+          >
+            {activeTab}
+          </h1>
           <div className="flex justify-between gap-5 px-2 items-center">
             <div className="relative w-full max-w-sm">
               <Search
-                className="absolute left-2 top-1/2 -translate-y-1/2 text-[#1C1F25]"
+                stroke={isDark ? "#ffffff" : "#000000"}
+                className="absolute left-2 top-1/2 -translate-y-1/2"
                 width={20}
               />
               <input
                 type="text"
                 placeholder="Search"
-                className="w-full pl-9 pr-3 py-2 border rounded-2xl focus:outline-none"
+                style={{
+                  border: `1px solid ${colors.border}`,
+                  color: colors.text,
+                }}
+                className="w-full pl-9 pr-3 py-2  rounded-2xl focus:outline-none"
               />
             </div>
-            <div>{isDark ? <Sun /> : <Moon />}</div>
+            <button onClick={toggleTheme}>
+              {isDark ? <Sun stroke="#ffffff" strokeWidth={2} /> : <Moon />}
+            </button>
             <div>
-              <CirclePlus />
+              <CirclePlus
+                stroke={isDark ? "#ffffff" : "#000000"}
+                strokeWidth={2}
+              />
             </div>
             <div>
-              <Bell />
+              <Bell stroke={isDark ? "#ffffff" : "#000000"} strokeWidth={2} />
             </div>
             <div>
-              <User />
+              <User stroke={isDark ? "#ffffff" : "#000000"} strokeWidth={2} />
             </div>
           </div>
         </nav>
