@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
         {/* Logo & Description */}
         <div>
-          <img className="w-40" src="../public/Logo.png" alt="" />
+          <img className="w-40" src="/Logo.png" alt="" />
           <p className="text-gray-400">
             Smart task and project management for individuals and teams. Stay
             organized, productive, and focused.

@@ -8,11 +8,29 @@ export const AppSettingsProvider = ({ children }) => {
   const light = {
     text: "#6B7280",
     primary: "#2563EB",
+    // primary: "#5B21B6",
+    background: "white",
+    border: "#E5E5E5",
+    boldText: "#000000",
+    cards: "white",
   };
 
   const dark = {
-    text: "#FFFFFF",
+    // primary: "#5B21B6",
     primary: "#2563EB",
+    colorTest: "#818CF8",
+    boldText: "white",
+    text: "white",
+    plusProgress: "#4ADE80",
+    subProgress: "text-red-400 bg-red-900/30",
+    inprogress: "bg-yellow-900/30 text-yellow-300",
+    completed: "bg-green-900/30 text-green-300",
+    planning: "bg-blue-900/30 text-blue-300",
+    heading: "text-gray-100",
+    background: "#1E293B",
+    headings: "text-gray-100",
+    cards: "#1E293B",
+    border: "#374151",
   };
 
   const toggleTheme = () => {
