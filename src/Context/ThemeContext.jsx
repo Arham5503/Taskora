@@ -10,6 +10,7 @@ export const AppSettingsProvider = ({ children }) => {
     primary: "#2563EB",
     // primary: "#5B21B6",
     background: "white",
+    sidebar: "white",
     border: "#E5E5E5",
     boldText: "#000000",
     cards: "white",
@@ -27,9 +28,10 @@ export const AppSettingsProvider = ({ children }) => {
     completed: "bg-green-900/30 text-green-300",
     planning: "bg-blue-900/30 text-blue-300",
     heading: "text-gray-100",
-    background: "#1E293B",
+    background: "#121212",
+    sidebar: "#1E1E1E",
     headings: "text-gray-100",
-    cards: "#1E293B",
+    cards: "#2D2D2D",
     border: "#374151",
   };
 

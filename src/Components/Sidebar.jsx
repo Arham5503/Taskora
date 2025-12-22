@@ -11,21 +11,28 @@ import {
   MessageSquareDot,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
 function Sidebar() {
   const { colors } = useContext(AppSettingsContext);
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   useEffect(() => {
     const path = location.pathname.split("/")[1];
     setActiveTab(path || "dashboard");
   }, [location.pathname]);
+  const handleLogout = async () => {
+    await fetch("http://localhost:2004/api/logout", {
+      method: "GET",
+      credentials: "include",
+    }).then(() => navigate("/"));
+  };
 
   return (
     <aside
-      style={{ backgroundColor: colors.background }}
+      style={{ backgroundColor: colors.sidebar }}
       className="sidebar flex flex-col w-1/5 min-w-[250px] p-4 h-screen shadow-xl"
     >
       {/* Logo */}
@@ -128,13 +135,14 @@ function Sidebar() {
   </button>
 </div> */}
       {/* Logout */}
-      <Link
-        to={"/login"}
-        className="flex items-center text-[#1C1F25] gap-2 cursor-pointer mt-4"
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-2 cursor-pointer mt-4"
+        style={{ color: colors.text }}
       >
         <LogOut />
         Log out
-      </Link>
+      </button>
     </aside>
   );
 }

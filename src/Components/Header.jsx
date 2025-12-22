@@ -1,7 +1,7 @@
 import { Search, CirclePlus, Bell, User, Sun, Moon } from "lucide-react";
 import { useContext, useState, useEffect } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 function Header() {
   const { isDark, toggleTheme, colors } = useContext(AppSettingsContext);
@@ -16,7 +16,7 @@ function Header() {
   return (
     <>
       <header
-        style={{ backgroundColor: colors.background }}
+        style={{ backgroundColor: colors.sidebar }}
         className="px-5 shadow-md"
       >
         <nav className="flex justify-between items-center py-3">
@@ -52,9 +52,9 @@ function Header() {
                 strokeWidth={2}
               />
             </div>
-            <div>
+            <Link to={"/notifications"}>
               <Bell stroke={isDark ? "#ffffff" : "#000000"} strokeWidth={2} />
-            </div>
+            </Link>
             <div>
               <User stroke={isDark ? "#ffffff" : "#000000"} strokeWidth={2} />
             </div>

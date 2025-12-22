@@ -24,10 +24,9 @@ function Login() {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams(formData),
+        credentials: "include",
       });
       const data = await res.json();
-      const token = data.accessToken;
-      localStorage.setItem("token", token);
 
       if (res.ok) {
         navigate("/dashboard");
@@ -145,12 +144,6 @@ function Login() {
           />
         </div>
       </section>
-      <button
-        className="border-2 my-5"
-        onClick={() => toast.success("Hello world!")}
-      >
-        Test Toast
-      </button>
     </main>
   );
 }

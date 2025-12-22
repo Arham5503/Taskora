@@ -44,13 +44,16 @@ function Projects() {
     <>
       {/* Projects */}
       <section className="py-5">
-        <h1 className="text-2xl font-medium">Project Overview</h1>
+        <h1 className="text-2xl font-medium" style={{ color: colors.boldText }}>
+          Project Overview
+        </h1>
         {/* Project card */}
         <div className="grid grid-cols-2 gap-6 my-4">
           {projectsMock.map((card, index) => (
             <div
               key={index}
-              className="border border-[#E5E5E5] flex flex-col gap-6 rounded-lg p-4 bg-white shadow-sm"
+              className="border border-[#E5E5E5] flex flex-col gap-6 rounded-lg p-4 shadow-sm"
+              style={{ background: colors.background, color: colors.text }}
             >
               {/* Header */}
               <div className="flex justify-between items-start mb-3">
@@ -67,7 +70,10 @@ function Projects() {
                   }}
                 >
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[18px] font-medium text-black">
+                    <h2
+                      className="text-[18px] font-medium "
+                      style={{ color: colors.boldText }}
+                    >
                       {card.title}
                     </h2>
                     <span
@@ -79,7 +85,7 @@ function Projects() {
                       {card?.icon}
                     </span>
                   </div>
-                  <p className="text-[14px] text-gray-500">{card.disc}</p>
+                  <p className="text-[14px] text-[#A6A6A6]">{card.disc}</p>
                 </div>
                 <div
                   className="text-[14px] px-3 py-1 rounded-full "

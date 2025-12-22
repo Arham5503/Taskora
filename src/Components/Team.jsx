@@ -51,8 +51,8 @@ const TeamMembersDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-5 ">
+      <div className="max-w-7xl mx-auto overflow-hidden">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Header */}
           <div className="p-6 border-b border-gray-200">
@@ -170,7 +170,7 @@ const TeamMembersDashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
