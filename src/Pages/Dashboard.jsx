@@ -7,15 +7,17 @@ import {
   Calendar,
   Star,
 } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
 import TaskList from "../Components/TasksList";
 import Projects from "../Components/Projects";
 import TeamMembersDashboard from "../Components/Team";
 import CreateProject from "../models/CreateProject";
+import { useOutletContext } from "react-router-dom";
 function Dashboard() {
   const { colors } = useContext(AppSettingsContext);
-  const [showCreateModel, setShowCreateModel] = useState(false);
+  const { showCreateModel, setShowCreateModel } = useOutletContext();
+
   const analyticsMock = [
     {
       icon1: <FileText />,
@@ -100,7 +102,10 @@ function Dashboard() {
         {/* Team Members */}
         <TeamMembersDashboard />
       </main>
-      <CreateProject showModel={showCreateModel} />
+      <CreateProject
+        open={showCreateModel}
+        onClose={() => setShowCreateModel(false)}
+      />
     </>
   );
 }

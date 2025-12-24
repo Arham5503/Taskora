@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useApp } from "../Context/ThemeContext";
 const tasksData = [
   {
     category: "Figma Design System",
@@ -43,9 +44,13 @@ const priorityColors = {
 };
 
 const TaskList = () => {
+  const { colors } = useApp();
   return (
     <section className="py-5">
-      <div className="p-6 max-w-2xl bg-white rounded-lg shadow">
+      <div
+        className="p-6 max-w-2xl rounded-lg shadow"
+        style={{ background: colors.cards }}
+      >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-medium">My Tasks</h2>
           <Link

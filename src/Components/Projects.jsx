@@ -53,7 +53,7 @@ function Projects() {
             <div
               key={index}
               className="border border-[#E5E5E5] flex flex-col gap-6 rounded-lg p-4 shadow-sm"
-              style={{ background: colors.background, color: colors.text }}
+              style={{ background: colors.cards, color: colors.text }}
             >
               {/* Header */}
               <div className="flex justify-between items-start mb-3">
