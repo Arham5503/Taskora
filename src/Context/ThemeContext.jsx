@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useContext } from "react";
 
 export const AppSettingsContext = createContext();
 
@@ -10,9 +10,11 @@ export const AppSettingsProvider = ({ children }) => {
     primary: "#2563EB",
     // primary: "#5B21B6",
     background: "white",
+    sidebar: "white",
     border: "#E5E5E5",
     boldText: "#000000",
     cards: "white",
+    header: "white",
   };
 
   const dark = {
@@ -27,10 +29,12 @@ export const AppSettingsProvider = ({ children }) => {
     completed: "bg-green-900/30 text-green-300",
     planning: "bg-blue-900/30 text-blue-300",
     heading: "text-gray-100",
-    background: "#1E293B",
+    background: "#121212",
+    sidebar: "#1E1E1E",
+    header: "#2D2D2D",
     headings: "text-gray-100",
-    cards: "#1E293B",
-    border: "#374151",
+    cards: "#2D2D2D",
+    border: "#2D2D2D",
   };
 
   const toggleTheme = () => {
@@ -50,3 +54,5 @@ export const AppSettingsProvider = ({ children }) => {
     </AppSettingsContext.Provider>
   );
 };
+
+export const useApp = () => useContext(AppSettingsContext);

@@ -14,10 +14,15 @@ import ProjectsPage from "../Pages/ProjectsPage.jsx";
 import TasksPage from "../Pages/TasksPage.jsx";
 import TaskCalendar from "../Pages/Calendar.jsx";
 import NotificationInbox from "../Pages/Notifications.jsx";
+import { useAuth } from "../Context/AuthContext.jsx";
 
+// Protected Route Check
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/login" replace />;
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>Checking auth...</div>;
+
+  return user ? children : <Navigate to="/login" replace />;
 };
 
 const AppRoutes = createBrowserRouter(
@@ -28,7 +33,7 @@ const AppRoutes = createBrowserRouter(
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      {/* PROTECTED LAYOUT */}
+      {/* PROTECTED */}
       <Route
         element={
           <ProtectedRoute>

@@ -1,7 +1,9 @@
 import React from "react";
 import { Users, MoreVertical, TrendingUp, TrendingDown } from "lucide-react";
+import { useApp } from "../Context/ThemeContext";
 
 const TeamMembersDashboard = () => {
+  const { colors } = useApp();
   const teamMembers = [
     {
       id: 1,
@@ -51,9 +53,15 @@ const TeamMembersDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <section
+      className="py-5 rounded-lg"
+      style={{
+        background: colors.cards,
+        border: `1px solid ${colors.border}`,
+      }}
+    >
+      <div className="max-w-7xl mx-auto overflow-hidden">
+        <div className="rounded-lg shadow-sm">
           {/* Header */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -65,7 +73,7 @@ const TeamMembersDashboard = () => {
                   Performance overview of team members
                 </p>
               </div>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 rounded-lg transition-colors">
                 <Users className="w-4 h-4" />
                 View All
               </button>
@@ -75,7 +83,7 @@ const TeamMembersDashboard = () => {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Name
@@ -94,7 +102,7 @@ const TeamMembersDashboard = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className=" divide-y divide-gray-200">
                 {teamMembers.map((member) => (
                   <tr
                     key={member.id}
@@ -170,7 +178,7 @@ const TeamMembersDashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
