@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children }) => {
 
   if (loading) return <div>Checking auth...</div>;
 
-  return user ? children : <Navigate to="/login" replace />;
+  return user ? children : <Navigate to="/" replace />;
 };
 
 const AppRoutes = createBrowserRouter(

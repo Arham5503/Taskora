@@ -18,7 +18,6 @@ export const AuthProvider = ({ children }) => {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Hello Data", data);
         setUser(data.user);
       })
       .catch(() => setUser(null))
@@ -26,7 +25,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

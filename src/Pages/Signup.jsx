@@ -31,9 +31,9 @@ function Login() {
       const res = await fetch("http://localhost:2004/api/signup", {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
         },
-        body: new URLSearchParams(payload),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (res.ok) {
