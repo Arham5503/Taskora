@@ -8,8 +8,9 @@ export default function CreateProject({ open, onClose }) {
   const [due, setDue] = useState("days");
   const [formData, setFormData] = useState({
     title: "",
-    priority: "",
-    durationDays: "",
+    description: "",
+    priority: "low",
+    durationDays: 1,
   });
 
   useEffect(() => {
@@ -65,8 +66,15 @@ export default function CreateProject({ open, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.priority || !formData.duration) {
+
+    if (
+      !formData.title ||
+      !formData.description ||
+      !formData.priority ||
+      !formData.durationDays
+    ) {
       alert("Please Fill all required fields");
+
       return;
     }
     try {
@@ -87,7 +95,6 @@ export default function CreateProject({ open, onClose }) {
       console.log(error);
     }
   };
-
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -96,10 +103,10 @@ export default function CreateProject({ open, onClose }) {
       <form
         method="POST"
         onSubmit={handleSubmit}
-        className="bg-white rounded-lg w-full max-w-4xl mx-auto z-50 max-h-[95vh] overflow-y-auto"
+        className="bg-white rounded-lg w-full max-w-4xl mx-auto z-50 max-h-[98vh] overflow-y-auto"
       >
         {/* Modal Header */}
-        <div className="px-5 py-2 border-b">
+        <div className="px-5 py-1 border-b">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
@@ -119,7 +126,7 @@ export default function CreateProject({ open, onClose }) {
         </div>
 
         {/* Modal Body */}
-        <div className="px-5 py-3">
+        <div className="px-5 py-2">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Left Column */}
             <div>
@@ -134,10 +141,21 @@ export default function CreateProject({ open, onClose }) {
                 onChange={handelFormData}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <label className="block text-sm font-semibold text-gray-900 my-2">
+                Project Discription<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Short Discription"
+                name="description"
+                value={formData.description}
+                onChange={handelFormData}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
 
               {/* Team Section */}
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              <div className="mt-3">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Team
                 </h3>
                 <div className="space-y-2">
@@ -179,7 +197,7 @@ export default function CreateProject({ open, onClose }) {
             {/* Right Column - Logo Upload */}
             <div>
               <div>
-                <div className="flex gap-4 mb-3">
+                <div className="flex gap-4 mb-2">
                   <button
                     onClick={() => setActiveTab("upload")}
                     className={`px-4 py-2 cursor-pointer font-semibold ${
@@ -225,9 +243,7 @@ export default function CreateProject({ open, onClose }) {
                 onChange={handelFormData}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="low" selected>
-                  Low
-                </option>
+                <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
               </select>
@@ -267,7 +283,7 @@ export default function CreateProject({ open, onClose }) {
         </div>
 
         {/* Modal Footer */}
-        <div className="px-5 py-3 border-t flex items-center justify-between">
+        <div className="px-5 py-2 border-t flex items-center justify-between">
           <button
             onClick={onClose}
             className="px-6 py-2 text-gray-700 font-semibold hover:bg-gray-100 rounded-lg cursor-pointer"

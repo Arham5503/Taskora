@@ -12,7 +12,6 @@ function Login() {
     email: "",
     password: "",
   });
-  console.log(formData);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

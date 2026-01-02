@@ -19,7 +19,7 @@ function Dashboard() {
   const { colors } = useContext(AppSettingsContext);
   const { showCreateModel, setShowCreateModel } = useOutletContext();
   const [projects, setProjects] = useState([]);
-
+  console.log(projects);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -37,24 +37,18 @@ function Dashboard() {
     };
     fetchData();
   }, []);
-  // get date function
-  const dateFinder = (days) => {
-    const futureDate = new Date();
-    return futureDate.setDate(futureDate.getDate() + days);
-  };
+
   // console.log(result);
 
   const analytics = useMemo(() => {
     const now = new Date();
 
-    const summary = [
-      {
-        all: projects.length || 0,
-        inProgress: 0,
-        completed: 0,
-        overdue: 0,
-      },
-    ];
+    const summary = {
+      all: projects.length || 0,
+      inProgress: 0,
+      completed: 0,
+      overdue: 0,
+    };
 
     projects.forEach((project) => {
       if (project.status === "planning" || project.status === "in_progress") {
@@ -64,6 +58,7 @@ function Dashboard() {
         summary.completed++;
       }
     });
+    return summary;
   }, [projects]);
 
   const analyticsMock = [
@@ -95,8 +90,8 @@ function Dashboard() {
       icon1: <CircleAlert />,
       icon2: <ArrowUpRight />,
       icon2Value: "-1",
-      title: analytics.overdue,
-      numbers: 1,
+      title: "Over Due",
+      numbers: analytics.overdue,
       from: "from last month",
     },
   ];
@@ -144,7 +139,7 @@ function Dashboard() {
           ))}
         </section>
         {/* Projects */}
-        <Projects />
+        <Projects projectsData={projects} />
         {/* Tasks */}
         <TaskList />
         {/* Team Members */}

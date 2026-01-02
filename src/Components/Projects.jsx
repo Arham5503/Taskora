@@ -1,8 +1,18 @@
 import { FileText, Calendar, Star } from "lucide-react";
 import { useContext } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
-function Projects() {
+function Projects({ projectsData }) {
   const { colors } = useContext(AppSettingsContext);
+  // get date function
+  const dateFinder = (days) => {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + days);
+
+    // Format the date as a string
+    const options = { month: "short", day: "numeric", year: "numeric" };
+    return futureDate.toLocaleDateString("en-US", options);
+  };
+
   const projectsMock = [
     {
       title: "Figma Design System",
@@ -49,9 +59,9 @@ function Projects() {
         </h1>
         {/* Project card */}
         <div className="grid grid-cols-2 gap-6 my-4">
-          {projectsMock.map((card, index) => (
+          {projectsData.slice(0, 4).map((card) => (
             <div
-              key={index}
+              key={card.id}
               className="border border-[#E5E5E5] flex flex-col gap-6 rounded-lg p-4 shadow-sm"
               style={{ background: colors.cards, color: colors.text }}
             >
@@ -85,7 +95,9 @@ function Projects() {
                       {card?.icon}
                     </span>
                   </div>
-                  <p className="text-[14px] text-[#A6A6A6]">{card.disc}</p>
+                  <p className="text-[14px] text-[#A6A6A6]">
+                    {card.description}
+                  </p>
                 </div>
                 <div
                   className="text-[14px] px-3 py-1 rounded-full "
@@ -112,7 +124,7 @@ function Projects() {
                 <div className="flex items-center text-gray-500 mb-3">
                   <Calendar className="w-5 h-5" />
                   <span className="ml-2 text-[14px]">
-                    Deadline: {card.deadline}
+                    Deadline: {dateFinder(card.durationDays)}
                   </span>
                 </div>
 
@@ -155,7 +167,8 @@ function Projects() {
                   {/* Tasks */}
                   <div className="flex items-center gap-1 text-gray-500 text-[14px]">
                     <FileText className="w-4 h-4 stroke-gray-400" />
-                    <span>{card.tasks} tasks</span>
+                    {/* <span>{card.tasks} tasks</span> */}
+                    <span>0 tasks</span>
                   </div>
                 </div>
               </div>
