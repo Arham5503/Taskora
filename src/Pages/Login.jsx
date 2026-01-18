@@ -3,14 +3,15 @@ import { LayoutTemplate, Users, CircleDollarSign, Lock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { useAuth } from "../Context/AuthContext";
 
 function Login() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  console.log(formData);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,16 +22,17 @@ function Login() {
       const res = await fetch("http://localhost:2004/api/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
         },
-        body: new URLSearchParams(formData),
+        body: JSON.stringify(formData),
         credentials: "include",
       });
       const data = await res.json();
 
       if (res.ok) {
-        navigate("/dashboard");
-        return toast.success("Logged In Successfully!");
+        // toast.success("Logged In Successfully!");
+        setUser(data.user);
+        return navigate("/dashboard");
       } else {
         toast.error(data.message || " hello world");
       }

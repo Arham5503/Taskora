@@ -7,16 +7,64 @@ import {
   Calendar,
   Star,
 } from "lucide-react";
-import { useContext } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
 import TaskList from "../Components/TasksList";
 import Projects from "../Components/Projects";
 import TeamMembersDashboard from "../Components/Team";
 import CreateProject from "../models/CreateProject";
 import { useOutletContext } from "react-router-dom";
+import { useState } from "react";
 function Dashboard() {
   const { colors } = useContext(AppSettingsContext);
   const { showCreateModel, setShowCreateModel } = useOutletContext();
+  const [projects, setProjects] = useState([]);
+  console.log(projects);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/project-data`,
+          {
+            method: "GET",
+            credentials: "include",
+          },
+        );
+
+        const data = await response.json();
+
+        setProjects(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // console.log(result);
+
+  const analytics = useMemo(() => {
+    const now = new Date();
+
+    const summary = {
+      all: projects.length || 0,
+      inProgress: 0,
+      completed: 0,
+      overdue: 0,
+    };
+
+    if (projects.length > 0) {
+      projects.forEach((project) => {
+        if (project.status === "planning" || project.status === "in_progress") {
+          summary.inProgress++;
+        }
+        if (project.status === "completed") {
+          summary.completed++;
+        }
+      });
+    }
+    return summary;
+  }, [projects]);
 
   const analyticsMock = [
     {
@@ -24,7 +72,7 @@ function Dashboard() {
       icon2: <ArrowUpRight />,
       icon2Value: "+2",
       title: "Total Projects",
-      numbers: 12,
+      numbers: analytics.all,
       from: "from last month",
     },
     {
@@ -32,7 +80,7 @@ function Dashboard() {
       icon2: <ArrowUpRight />,
       icon2Value: "+3",
       title: "In Progress",
-      numbers: 7,
+      numbers: analytics.inProgress,
       from: "from last month",
     },
     {
@@ -40,15 +88,15 @@ function Dashboard() {
       icon2: <ArrowUpRight />,
       icon2Value: "+1",
       title: "Completed",
-      numbers: 4,
+      numbers: analytics.completed,
       from: "from last month",
     },
     {
       icon1: <CircleAlert />,
       icon2: <ArrowUpRight />,
       icon2Value: "-1",
-      title: "Overdue",
-      numbers: 1,
+      title: "Over Due",
+      numbers: analytics.overdue,
       from: "from last month",
     },
   ];
@@ -96,7 +144,7 @@ function Dashboard() {
           ))}
         </section>
         {/* Projects */}
-        <Projects />
+        <Projects projectsData={projects} />
         {/* Tasks */}
         <TaskList />
         {/* Team Members */}

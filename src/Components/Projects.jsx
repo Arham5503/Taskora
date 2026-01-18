@@ -1,8 +1,21 @@
 import { FileText, Calendar, Star } from "lucide-react";
 import { useContext } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
-function Projects() {
+function Projects({ projectsData }) {
   const { colors } = useContext(AppSettingsContext);
+  // get date function
+  const dateFinder = (days) => {
+    if (typeof days !== "number") return "N/A";
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + days);
+
+    return futureDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   const projectsMock = [
     {
       title: "Figma Design System",
@@ -40,6 +53,10 @@ function Projects() {
       tasks: 30,
     },
   ];
+  const safeProjects =
+    Array.isArray(projectsData) && projectsData.length > 0
+      ? projectsData
+      : projectsMock;
   return (
     <>
       {/* Projects */}
@@ -49,9 +66,9 @@ function Projects() {
         </h1>
         {/* Project card */}
         <div className="grid grid-cols-2 gap-6 my-4">
-          {projectsMock.map((card, index) => (
+          {safeProjects.slice(0, 4).map((card) => (
             <div
-              key={index}
+              key={card.id}
               className="border border-[#E5E5E5] flex flex-col gap-6 rounded-lg p-4 shadow-sm"
               style={{ background: colors.cards, color: colors.text }}
             >
@@ -64,8 +81,8 @@ function Projects() {
                       card.status === "Completed"
                         ? "#22C55E"
                         : card.status === "Planning"
-                        ? "#3B82F6"
-                        : "#EAB308"
+                          ? "#3B82F6"
+                          : "#EAB308"
                     }`,
                   }}
                 >
@@ -74,7 +91,7 @@ function Projects() {
                       className="text-[18px] font-medium "
                       style={{ color: colors.boldText }}
                     >
-                      {card.title}
+                      {card.title || "Untitled Project"}
                     </h2>
                     <span
                       style={{
@@ -85,7 +102,9 @@ function Projects() {
                       {card?.icon}
                     </span>
                   </div>
-                  <p className="text-[14px] text-[#A6A6A6]">{card.disc}</p>
+                  <p className="text-[14px] text-[#A6A6A6]">
+                    {card.description || card.disc || "No description"}
+                  </p>
                 </div>
                 <div
                   className="text-[14px] px-3 py-1 rounded-full "
@@ -94,14 +113,14 @@ function Projects() {
                       card.status === "Completed"
                         ? "#DCFCE7"
                         : card.status === "Planning"
-                        ? "#DBEAFE"
-                        : "#FEF9C3",
+                          ? "#DBEAFE"
+                          : "#FEF9C3",
                     color:
                       card.status === "Completed"
                         ? "#166534"
                         : card.status === "Planning"
-                        ? "#1E40AF"
-                        : "#854D0E",
+                          ? "#1E40AF"
+                          : "#854D0E",
                   }}
                 >
                   {card.status}
@@ -112,7 +131,7 @@ function Projects() {
                 <div className="flex items-center text-gray-500 mb-3">
                   <Calendar className="w-5 h-5" />
                   <span className="ml-2 text-[14px]">
-                    Deadline: {card.deadline}
+                    Deadline: {dateFinder(card.durationDays)}
                   </span>
                 </div>
 
@@ -122,7 +141,7 @@ function Projects() {
                   style={{ color: colors.text }}
                 >
                   <span>Progress</span>
-                  <span>{card.progress}%</span>
+                  <span>{card.progress ?? 0}%</span>
                 </div>
                 <div className="h-2 rounded-md overflow-hidden bg-[#F5F5F5]">
                   <div
@@ -155,7 +174,8 @@ function Projects() {
                   {/* Tasks */}
                   <div className="flex items-center gap-1 text-gray-500 text-[14px]">
                     <FileText className="w-4 h-4 stroke-gray-400" />
-                    <span>{card.tasks} tasks</span>
+                    {/* <span>{card.tasks} tasks</span> */}
+                    <span>0 tasks</span>
                   </div>
                 </div>
               </div>

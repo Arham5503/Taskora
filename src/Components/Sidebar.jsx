@@ -14,8 +14,10 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
+import { useAuth } from "../Context/AuthContext";
 function Sidebar() {
   const { colors } = useContext(AppSettingsContext);
+  const { setUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -27,7 +29,10 @@ function Sidebar() {
     await fetch("http://localhost:2004/api/logout", {
       method: "GET",
       credentials: "include",
-    }).then(() => navigate("/"));
+    }).then(() => {
+      setUser(null);
+      navigate("/");
+    });
   };
 
   return (

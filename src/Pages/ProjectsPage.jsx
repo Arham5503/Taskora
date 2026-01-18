@@ -1,6 +1,6 @@
 import CreateProject from "../models/CreateProject";
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import {
   Search,
   Filter,
@@ -21,10 +21,37 @@ function ProjectsPage() {
   const [viewMode, setViewMode] = useState("grid");
   const [showActions, setShowActions] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const { showCreateModel, setShowCreateModel } = useOutletContext();
 
   const toggleActions = () => setShowActions(!showActions);
   const toggleDetails = () => setShowDetails(!showDetails);
+  const [projects, setProjects] = useState();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState();
 
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/project-data`,
+          {
+            method: "GET",
+            credentials: "include",
+          },
+        );
+        if (!res.ok) {
+          throw new Error("Failed To Fetch Projects");
+        }
+        const data = await res.json();
+        setProjects(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProjects();
+  }, []);
   return (
     <>
       {/* <CreateProject /> */}
@@ -206,6 +233,10 @@ function ProjectsPage() {
           </div>
         </div>
       </div>
+      <CreateProject
+        open={showCreateModel}
+        onClose={() => setShowCreateModel(false)}
+      />
     </>
   );
 }
