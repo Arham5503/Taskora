@@ -23,10 +23,13 @@ function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:2004/api/project-data", {
-          method: "GET",
-          credentials: "include",
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/project-data`,
+          {
+            method: "GET",
+            credentials: "include",
+          },
+        );
 
         const data = await response.json();
 
@@ -50,14 +53,16 @@ function Dashboard() {
       overdue: 0,
     };
 
-    projects.forEach((project) => {
-      if (project.status === "planning" || project.status === "in_progress") {
-        summary.inProgress++;
-      }
-      if (project.status === "completed") {
-        summary.completed++;
-      }
-    });
+    if (projects.length > 0) {
+      projects.forEach((project) => {
+        if (project.status === "planning" || project.status === "in_progress") {
+          summary.inProgress++;
+        }
+        if (project.status === "completed") {
+          summary.completed++;
+        }
+      });
+    }
     return summary;
   }, [projects]);
 

@@ -40,7 +40,7 @@ function Header({ onCreateClick }) {
                   border: `1px solid ${colors.border}`,
                   color: colors.text,
                 }}
-                className="w-full pl-9 pr-3 py-2  rounded-2xl focus:outline-none"
+                className="w-full pl-9 pr-3 py-2  rounded-2xl focus:outline"
               />
             </div>
             <button onClick={toggleTheme} className="cursor-pointer">
@@ -53,12 +53,12 @@ function Header({ onCreateClick }) {
                 onClick={onCreateClick}
               />
             </div>
-            <Link to={"/notifications"} className="cursor-pointer">
+            <Link to={"/notifications"} className="cursor-pointer ">
               <Bell stroke={isDark ? "#ffffff" : "#000000"} strokeWidth={2} />
             </Link>
-            <div className="cursor-pointer">
+            <Link to={"/profile"} className="cursor-pointer">
               <User stroke={isDark ? "#ffffff" : "#000000"} strokeWidth={2} />
-            </div>
+            </Link>
           </div>
         </nav>
       </header>

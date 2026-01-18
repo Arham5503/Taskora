@@ -5,12 +5,15 @@ function Projects({ projectsData }) {
   const { colors } = useContext(AppSettingsContext);
   // get date function
   const dateFinder = (days) => {
+    if (typeof days !== "number") return "N/A";
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + days);
 
-    // Format the date as a string
-    const options = { month: "short", day: "numeric", year: "numeric" };
-    return futureDate.toLocaleDateString("en-US", options);
+    return futureDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const projectsMock = [
@@ -50,6 +53,10 @@ function Projects({ projectsData }) {
       tasks: 30,
     },
   ];
+  const safeProjects =
+    Array.isArray(projectsData) && projectsData.length > 0
+      ? projectsData
+      : projectsMock;
   return (
     <>
       {/* Projects */}
@@ -59,7 +66,7 @@ function Projects({ projectsData }) {
         </h1>
         {/* Project card */}
         <div className="grid grid-cols-2 gap-6 my-4">
-          {projectsData.slice(0, 4).map((card) => (
+          {safeProjects.slice(0, 4).map((card) => (
             <div
               key={card.id}
               className="border border-[#E5E5E5] flex flex-col gap-6 rounded-lg p-4 shadow-sm"
@@ -74,8 +81,8 @@ function Projects({ projectsData }) {
                       card.status === "Completed"
                         ? "#22C55E"
                         : card.status === "Planning"
-                        ? "#3B82F6"
-                        : "#EAB308"
+                          ? "#3B82F6"
+                          : "#EAB308"
                     }`,
                   }}
                 >
@@ -84,7 +91,7 @@ function Projects({ projectsData }) {
                       className="text-[18px] font-medium "
                       style={{ color: colors.boldText }}
                     >
-                      {card.title}
+                      {card.title || "Untitled Project"}
                     </h2>
                     <span
                       style={{
@@ -96,7 +103,7 @@ function Projects({ projectsData }) {
                     </span>
                   </div>
                   <p className="text-[14px] text-[#A6A6A6]">
-                    {card.description}
+                    {card.description || card.disc || "No description"}
                   </p>
                 </div>
                 <div
@@ -106,14 +113,14 @@ function Projects({ projectsData }) {
                       card.status === "Completed"
                         ? "#DCFCE7"
                         : card.status === "Planning"
-                        ? "#DBEAFE"
-                        : "#FEF9C3",
+                          ? "#DBEAFE"
+                          : "#FEF9C3",
                     color:
                       card.status === "Completed"
                         ? "#166534"
                         : card.status === "Planning"
-                        ? "#1E40AF"
-                        : "#854D0E",
+                          ? "#1E40AF"
+                          : "#854D0E",
                   }}
                 >
                   {card.status}
@@ -134,7 +141,7 @@ function Projects({ projectsData }) {
                   style={{ color: colors.text }}
                 >
                   <span>Progress</span>
-                  <span>{card.progress}%</span>
+                  <span>{card.progress ?? 0}%</span>
                 </div>
                 <div className="h-2 rounded-md overflow-hidden bg-[#F5F5F5]">
                   <div

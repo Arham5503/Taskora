@@ -14,6 +14,7 @@ import ProjectsPage from "../Pages/ProjectsPage.jsx";
 import TasksPage from "../Pages/TasksPage.jsx";
 import TaskCalendar from "../Pages/Calendar.jsx";
 import NotificationInbox from "../Pages/Notifications.jsx";
+import ProfilePage from "../Pages/Profile.jsx";
 import { useAuth } from "../Context/AuthContext.jsx";
 
 // Protected Route Check
@@ -47,9 +48,10 @@ const AppRoutes = createBrowserRouter(
         <Route path="/calendar" element={<TaskCalendar />} />
         <Route path="/notifications" element={<NotificationInbox />} />
         <Route path="/pricing" element={<PricingModal />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
-    </>
-  )
+    </>,
+  ),
 );
 
 export default AppRoutes;
