@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { X, Calendar } from "lucide-react";
 
-export default function CreateProjectModal() {
-  const [isOpen, setIsOpen] = useState(true);
+export default function CreateTask({ open, onClose }) {
   const [formData, setFormData] = useState({
     title: "",
     type: "",
@@ -15,22 +14,17 @@ export default function CreateProjectModal() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Project data:", formData);
-    // Handle project creation logic here
   };
 
-  const handleCancel = () => {
-    setIsOpen(false);
-  };
-
-  if (!isOpen) return null;
+  if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between px-6 py-1">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900">
               Create New Project
             </h2>
             <p className="text-sm text-gray-500 mt-1">
@@ -38,15 +32,15 @@ export default function CreateProjectModal() {
             </p>
           </div>
           <button
-            onClick={handleCancel}
+            onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <X size={20} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Form */}
-        <div className="p-6 space-y-5">
+        <div className="px-6 space-y-1">
           {/* Project Title */}
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -64,7 +58,7 @@ export default function CreateProjectModal() {
           </div>
 
           {/* Project Type */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-900 mb-2">
               Project Type
             </label>
@@ -81,11 +75,11 @@ export default function CreateProjectModal() {
               <option value="marketing">Marketing</option>
               <option value="research">Research</option>
             </select>
-          </div>
+          </div> */}
 
           {/* Priority */}
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-3">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               Priority
             </label>
             <div className="flex gap-6">
@@ -122,7 +116,7 @@ export default function CreateProjectModal() {
 
           {/* Due Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-1">
               Due Date
             </label>
             <div className="relative">
@@ -144,7 +138,7 @@ export default function CreateProjectModal() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-1">
               Description
             </label>
             <textarea
@@ -160,7 +154,7 @@ export default function CreateProjectModal() {
 
           {/* Assignees */}
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-1">
               Assignees
             </label>
             <select
@@ -186,10 +180,10 @@ export default function CreateProjectModal() {
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-1">
             <button
               type="button"
-              onClick={handleCancel}
+              onClick={onClose}
               className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             >
               Cancel

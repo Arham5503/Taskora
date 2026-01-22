@@ -14,7 +14,6 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (res.status === 401) {
-        // Access token expired → call refresh
         await fetch("http://localhost:2004/api/refresh", {
           method: "GET",
           credentials: "include",

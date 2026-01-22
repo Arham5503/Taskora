@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 function Hero() {
+  const { user, loading } = useAuth();
   return (
     <section
       id="Home"
@@ -32,12 +34,21 @@ function Hero() {
         </p>
 
         <div className="flex flex-wrap justify-center gap-4">
-          <Link
-            to={"/signup"}
-            className="px-8 py-3 bg-violet-400 text-black font-semibold rounded-full shadow-md hover:bg-violet-500 hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:scale-105 hover:text-white"
-          >
-            Get Started Free
-          </Link>
+          {user ? (
+            <Link
+              to={"/dashboard"}
+              className="px-8 py-3 bg-violet-400 text-black font-semibold rounded-full shadow-md hover:bg-violet-500 hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:scale-105 hover:text-white"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              to={"/signup"}
+              className="px-8 py-3 bg-violet-400 text-black font-semibold rounded-full shadow-md hover:bg-violet-500 hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:scale-105 hover:text-white"
+            >
+              Get Started Free
+            </Link>
+          )}
 
           <button className="px-8 py-3 border border-indigo-400 text-indigo-600 font-semibold rounded-full hover:bg-indigo-50 hover:-translate-y-1 hover:scale-105 transition-all duration-300 cursor-pointer">
             See How It Works

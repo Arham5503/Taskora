@@ -43,7 +43,7 @@ const priorityColors = {
   low: "bg-green-100 text-green-600",
 };
 
-const TaskList = () => {
+const TaskList = ({ onCreateClick }) => {
   const { colors } = useApp();
   return (
     <section className="py-5">
@@ -138,7 +138,10 @@ const TaskList = () => {
           </div>
         ))}
 
-        <button className="w-full border border-gray-300 rounded-lg py-2 mt-2 text-gray-700">
+        <button
+          onClick={onCreateClick}
+          className="w-full border border-gray-300 rounded-lg py-2 mt-2 text-gray-700 cursor-pointer"
+        >
           + Add New Task
         </button>
       </div>
