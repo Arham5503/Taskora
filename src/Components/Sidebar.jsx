@@ -42,7 +42,7 @@ function Sidebar() {
     >
       {/* Logo */}
       <div className="mb-6">
-        <img src="/Logo.png" alt="PlanOra Logo" className="w-40" />
+        <img src="/Logo.png" alt="Taskora Logo" className="w-40" />
       </div>
 
       {/* Navigation */}
@@ -97,20 +97,20 @@ function Sidebar() {
             <span>Calendar</span>
           </li>
         </Link>
-        <Link to={"/"}>
+        {/* <Link to={"/"}>
           <li
             className="flex items-center rounded-lg gap-2 p-2 cursor-pointer"
             style={{ color: colors.text }}
-            // style={{
-            //   backgroundColor:
-            //     activeTab === "dashboard" ? "#DBEAFE" : "transparent",
-            //   color: activeTab === "dashboard" ? colors.primary : colors.text,
-            // }}
+            style={{
+              backgroundColor:
+                activeTab === "dashboard" ? "#DBEAFE" : "transparent",
+              color: activeTab === "dashboard" ? colors.primary : colors.text,
+            }}
           >
             <ChartPie />
             <span>Productivity</span>
           </li>
-        </Link>
+        </Link> */}
         <Link to={"/notifications"}>
           <li
             className="flex items-center rounded-lg gap-2 p-2 cursor-pointer"

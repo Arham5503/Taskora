@@ -28,7 +28,7 @@ function Login() {
         return toast.error("Password not matched");
       }
       const payload = { username, email, password };
-      const res = await fetch("http://localhost:2004/api/signup", {
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

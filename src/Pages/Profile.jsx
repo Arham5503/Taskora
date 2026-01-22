@@ -1,39 +1,141 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Camera, Mail, User, Briefcase, AtSign, Save, X } from "lucide-react";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState({
-    profilePic:
+    profile:
       "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop",
-    fullName: "Jonathan Anderson",
-    displayName: "Jon",
-    title: "Senior Product Designer",
-    email: "jonathan.anderson@company.com",
+    username: " ",
+    title: " ",
+    email: " ",
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState({ ...profile });
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditedProfile({ ...editedProfile, profilePic: reader.result });
-      };
-      reader.readAsDataURL(file);
+  // Cloudinary upload function
+  const uploadToCloudinary = async (file) => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+      setIsUploading(true);
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Cloudinary error:", errorData);
+        throw new Error(errorData.error?.message || "Upload failed");
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Error uploading to Cloudinary:", error);
+      alert("Failed to upload image: " + error.message);
+      return null;
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleSave = () => {
-    setProfile({ ...editedProfile });
-    setIsEditing(false);
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (e.g., max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be less than 5MB");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        alert("Please upload an image file");
+        return;
+      }
+
+      // Show preview immediately (optional)
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditedProfile({ ...editedProfile, profile: reader.result });
+      };
+      reader.readAsDataURL(file);
+
+      // Upload to Cloudinary
+      const cloudinaryUrl = await uploadToCloudinary(file);
+      if (cloudinaryUrl) {
+        setEditedProfile({ ...editedProfile, profile: cloudinaryUrl });
+      }
+    }
   };
 
+  const handleSave = async (e) => {
+    e.preventDefault();
+    const dataToSend = {
+      username: editedProfile.username,
+      title: editedProfile.title,
+      profile: editedProfile.profile,
+    };
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/profile`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSend),
+      });
+
+      if (!res.ok) {
+        console.log("error");
+        return;
+      }
+
+      const data = await res.json();
+      setProfile(data.user);
+      setIsEditing(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const handleCancel = () => {
     setEditedProfile({ ...profile });
     setIsEditing(false);
   };
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/profile`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          return console.log("error");
+        }
+        const data = await res.json();
+        setProfile(data.user);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    setEditedProfile(profile);
+  }, [profile]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -57,12 +159,15 @@ export default function ProfilePage() {
             <div className="relative -mt-16 mb-6">
               <div className="relative inline-block">
                 <img
-                  src={
-                    isEditing ? editedProfile.profilePic : profile.profilePic
-                  }
+                  src={isEditing ? editedProfile?.profile : profile?.profile}
                   alt="Profile"
                   className="w-32 h-32 rounded-full border-4 border-white shadow-xl object-cover"
                 />
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
                 {isEditing && (
                   <label className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full cursor-pointer shadow-lg transition-colors">
                     <Camera size={18} />
@@ -71,6 +176,7 @@ export default function ProfilePage() {
                       accept="image/*"
                       onChange={handleImageChange}
                       className="hidden"
+                      disabled={isUploading}
                     />
                   </label>
                 )}
@@ -100,11 +206,13 @@ export default function ProfilePage() {
                 </label>
                 <input
                   type="text"
-                  value={isEditing ? editedProfile.fullName : profile.fullName}
+                  value={
+                    isEditing ? editedProfile?.username : profile?.username
+                  }
                   onChange={(e) =>
                     setEditedProfile({
                       ...editedProfile,
-                      fullName: e.target.value,
+                      username: e.target.value,
                     })
                   }
                   disabled={!isEditing}
@@ -150,7 +258,7 @@ export default function ProfilePage() {
                 </label>
                 <input
                   type="text"
-                  value={isEditing ? editedProfile.title : profile.title}
+                  value={isEditing ? editedProfile?.title : profile?.title}
                   onChange={(e) =>
                     setEditedProfile({
                       ...editedProfile,
@@ -177,7 +285,7 @@ export default function ProfilePage() {
                 </label>
                 <input
                   type="email"
-                  value={profile.email}
+                  value={profile?.email}
                   disabled
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                 />
