@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { X, Upload, Plus } from "lucide-react";
+import { toast } from "react-toastify";
 
-export default function CreateProject({ open, onClose }) {
+export default function CreateProject({ open, onClose, onSuccess }) {
   // const [isModalOpen, setIsModalOpen] = useState(showModel);
   const [activeTab, setActiveTab] = useState("upload");
   const [days, setDays] = useState(1);
@@ -9,6 +10,7 @@ export default function CreateProject({ open, onClose }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    client: "",
     priority: "low",
     durationDays: 1,
   });
@@ -73,8 +75,7 @@ export default function CreateProject({ open, onClose }) {
       !formData.priority ||
       !formData.durationDays
     ) {
-      alert("Please Fill all required fields");
-
+      toast.error("Please fill all required fields");
       return;
     }
     try {
@@ -87,12 +88,18 @@ export default function CreateProject({ open, onClose }) {
         credentials: "include",
       });
       if (res.ok) {
-        console.log(res);
-        setFormData({ title: "", priority: "", durationDays: "" });
+        toast.success("Project created successfully!");
+        setFormData({ title: "", description: "", priority: "low", durationDays: 1, client: "" });
+        setDays(1);
+        setDue("days");
         onClose();
+        if (onSuccess) onSuccess();
+      } else {
+        toast.error("Failed to create project");
       }
     } catch (error) {
       console.log(error);
+      toast.error("An error occurred while creating the project");
     }
   };
   if (!open) return null;
@@ -196,7 +203,7 @@ export default function CreateProject({ open, onClose }) {
 
             {/* Right Column - Logo Upload */}
             <div>
-              <div>
+              {/* <div>
                 <div className="flex gap-4 mb-2">
                   <button
                     onClick={() => setActiveTab("upload")}
@@ -231,7 +238,18 @@ export default function CreateProject({ open, onClose }) {
                     Min 600×600, PNG or JPEG
                   </div>
                 </div>
-              </div>
+              </div> */}
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Client<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Client name"
+                name="client"
+                value={formData.client}
+                onChange={handelFormData}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
               <label className="block text-sm font-semibold text-gray-900 mb-2">
                 Priority<span className="text-red-500">*</span>
               </label>

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 function Hero() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   return (
     <section
       id="Home"

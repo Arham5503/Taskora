@@ -11,10 +11,12 @@ import LandingPage from "../Pages/LandingPage.jsx";
 import PricingModal from "../Components/PricingModal.jsx";
 import Dashboard from "../Pages/Dashboard.jsx";
 import ProjectsPage from "../Pages/ProjectsPage.jsx";
+import ProjectDetail from "../Pages/ProjectDetail.jsx";
 import TasksPage from "../Pages/TasksPage.jsx";
 import TaskCalendar from "../Pages/Calendar.jsx";
 import NotificationInbox from "../Pages/Notifications.jsx";
 import ProfilePage from "../Pages/Profile.jsx";
+import JoinProject from "../Pages/JoinProject.jsx";
 import { useAuth } from "../Context/AuthContext.jsx";
 
 // Protected Route Check
@@ -33,6 +35,7 @@ const AppRoutes = createBrowserRouter(
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/join/:inviteCode" element={<JoinProject />} />
 
       {/* PROTECTED */}
       <Route
@@ -44,6 +47,7 @@ const AppRoutes = createBrowserRouter(
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/project" element={<ProjectsPage />} />
+        <Route path="/project/:projectId" element={<ProjectDetail />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/calendar" element={<TaskCalendar />} />
         <Route path="/notifications" element={<NotificationInbox />} />

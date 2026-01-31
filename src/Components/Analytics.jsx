@@ -14,7 +14,7 @@ function Analytics({ projects }) {
   console.log("projects:", projects);
 
   const analytics = useMemo(() => {
-    const now = new Date();
+    // const now = new Date();
 
     const summary = {
       all: projects.length || 0,
@@ -36,8 +36,9 @@ function Analytics({ projects }) {
     return summary;
   }, [projects]);
 
-  const analyticsMock = [
+  const analyticCards = [
     {
+      id: 0,
       icon1: <FileText />,
       icon2: <ArrowUpRight />,
       icon2Value: "+2",
@@ -46,6 +47,7 @@ function Analytics({ projects }) {
       from: "from last month",
     },
     {
+      id: 1,
       icon1: <Clock />,
       icon2: <ArrowUpRight />,
       icon2Value: "+3",
@@ -54,6 +56,7 @@ function Analytics({ projects }) {
       from: "from last month",
     },
     {
+      id: 2,
       icon1: <CircleCheckBig />,
       icon2: <ArrowUpRight />,
       icon2Value: "+1",
@@ -62,6 +65,7 @@ function Analytics({ projects }) {
       from: "from last month",
     },
     {
+      id: 3,
       icon1: <CircleAlert />,
       icon2: <ArrowUpRight />,
       icon2Value: "-1",
@@ -72,8 +76,9 @@ function Analytics({ projects }) {
   ];
   return (
     <section className="flex justify-between p-2 [&>div]:flex [&>div]:flex-col [&>div]:space-y-2 [&>div]:p-3">
-      {analyticsMock.map((analytic) => (
+      {analyticCards.map((analytic) => (
         <div
+          key={analytic.id}
           style={{
             background: colors.cards,
             border: `1px solid ${colors.border}`,
