@@ -21,7 +21,12 @@ import {
   X,
   Trash2,
 } from "lucide-react";
-import { getProjects, updateProjectStatus, deleteProject, generateInviteLink } from "../api/ApiBuilder";
+import {
+  getProjects,
+  updateProjectStatus,
+  deleteProject,
+  generateInviteLink,
+} from "../api/ApiBuilder";
 import { toast } from "react-toastify";
 
 function ProjectsPage() {
@@ -59,6 +64,7 @@ function ProjectsPage() {
     try {
       const data = await getProjects();
       setProjects(data);
+      console.log(data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -157,14 +163,18 @@ function ProjectsPage() {
 
   // Format status text
   const formatStatus = (status) => {
-    return status?.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "Planning";
+    return (
+      status?.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()) ||
+      "Planning"
+    );
   };
 
   // Filter projects by search
-  const filteredProjects = projects.filter((project) =>
-    project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.client?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProjects = projects.filter(
+    (project) =>
+      project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.client?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -242,8 +252,8 @@ function ProjectsPage() {
                           project.priority === "high"
                             ? "bg-red-500"
                             : project.priority === "medium"
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
                         }`}
                       ></div>
                       <div className="flex-1">
@@ -260,7 +270,9 @@ function ProjectsPage() {
                         </p>
                       </div>
                     </div>
-                    <span className={`px-3 py-1 text-sm rounded-full whitespace-nowrap ${getStatusColor(project.status)}`}>
+                    <span
+                      className={`px-3 py-1 text-sm rounded-full whitespace-nowrap ${getStatusColor(project.status)}`}
+                    >
                       {formatStatus(project.status)}
                     </span>
                   </div>
@@ -269,7 +281,8 @@ function ProjectsPage() {
                   <div className="flex items-center gap-2 text-gray-600 mb-6">
                     <Calendar className="w-4 h-4" />
                     <span className="text-sm">
-                      Deadline: {dateFinder(project.durationDays, project.startDate)}
+                      Deadline:{" "}
+                      {dateFinder(project.durationDays, project.startDate)}
                     </span>
                     <button
                       onClick={(e) => toggleActions(project._id, e)}
@@ -298,7 +311,9 @@ function ProjectsPage() {
                           className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium border-2 border-white -ml-2 first:ml-0"
                           title={member.username || member.email}
                         >
-                          {(member.username || member.email || "U")[0].toUpperCase()}
+                          {(member.username ||
+                            member.email ||
+                            "U")[0].toUpperCase()}
                         </div>
                       ))}
                       {project.team?.length > 3 && (
@@ -324,14 +339,19 @@ function ProjectsPage() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-600 mb-1">Start Date</div>
+                      <div className="text-sm text-gray-600 mb-1">
+                        Start Date
+                      </div>
                       <div className="font-semibold text-gray-900">
                         {project.startDate
-                          ? new Date(project.startDate).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? new Date(project.startDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            )
                           : "N/A"}
                       </div>
                     </div>
@@ -342,8 +362,8 @@ function ProjectsPage() {
                           project.priority === "high"
                             ? "bg-red-50 text-red-600"
                             : project.priority === "medium"
-                            ? "bg-yellow-50 text-yellow-600"
-                            : "bg-green-50 text-green-600"
+                              ? "bg-yellow-50 text-yellow-600"
+                              : "bg-green-50 text-green-600"
                         }`}
                       >
                         {project.priority}
@@ -379,7 +399,11 @@ function ProjectsPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setShowStatusMenu(showStatusMenu === project._id ? null : project._id);
+                            setShowStatusMenu(
+                              showStatusMenu === project._id
+                                ? null
+                                : project._id,
+                            );
                           }}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
                         >
@@ -388,40 +412,52 @@ function ProjectsPage() {
                         </button>
                         {showStatusMenu === project._id && (
                           <div className="absolute left-full top-0 ml-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-40">
-                            {["planning", "in_progress", "completed", "on_hold", "archived"].map(
-                              (status) => (
-                                <button
-                                  key={status}
-                                  onClick={() => handleStatusChange(project._id, status)}
-                                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                                    project.status === status
-                                      ? "text-blue-600 font-medium"
-                                      : "text-gray-700"
-                                  }`}
-                                >
-                                  {formatStatus(status)}
-                                </button>
-                              )
-                            )}
+                            {[
+                              "planning",
+                              "in_progress",
+                              "completed",
+                              "on_hold",
+                              "archived",
+                            ].map((status) => (
+                              <button
+                                key={status}
+                                onClick={() =>
+                                  handleStatusChange(project._id, status)
+                                }
+                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
+                                  project.status === status
+                                    ? "text-blue-600 font-medium"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                {formatStatus(status)}
+                              </button>
+                            ))}
                           </div>
                         )}
                       </div>
                       <button
-                        onClick={() => handleStatusChange(project._id, "completed")}
+                        onClick={() =>
+                          handleStatusChange(project._id, "completed")
+                        }
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
                       >
                         <CheckCircle className="w-4 h-4" />
                         Mark as Completed
                       </button>
                       <button
-                        onClick={() => handleStatusChange(project._id, "on_hold")}
+                        onClick={() =>
+                          handleStatusChange(project._id, "on_hold")
+                        }
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
                       >
                         <PauseCircle className="w-4 h-4" />
                         Put on Hold
                       </button>
                       <button
-                        onClick={() => handleStatusChange(project._id, "archived")}
+                        onClick={() =>
+                          handleStatusChange(project._id, "archived")
+                        }
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
                       >
                         <Archive className="w-4 h-4" />
@@ -442,7 +478,9 @@ function ProjectsPage() {
               ))
             ) : (
               <div className="col-span-2 text-center py-20 text-gray-500">
-                {searchQuery ? "No projects match your search" : "No Projects Created Yet"}
+                {searchQuery
+                  ? "No projects match your search"
+                  : "No Projects Created Yet"}
               </div>
             )}
           </div>
@@ -466,7 +504,8 @@ function ProjectsPage() {
               </button>
             </div>
             <p className="text-gray-500 text-sm mb-4">
-              Share this link with your team member to invite them to the project.
+              Share this link with your team member to invite them to the
+              project.
             </p>
             <div className="flex gap-2">
               <input
@@ -479,7 +518,11 @@ function ProjectsPage() {
                 onClick={copyInviteLink}
                 className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2"
               >
-                {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {linkCopied ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
                 {linkCopied ? "Copied!" : "Copy"}
               </button>
             </div>
@@ -496,8 +539,8 @@ function ProjectsPage() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
             <h3 className="text-lg font-semibold mb-2">Delete Project?</h3>
             <p className="text-gray-500 text-sm mb-4">
-              This action cannot be undone. All tasks and data associated with this
-              project will be permanently deleted.
+              This action cannot be undone. All tasks and data associated with
+              this project will be permanently deleted.
             </p>
             <div className="flex gap-3 justify-end">
               <button

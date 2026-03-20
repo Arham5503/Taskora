@@ -75,22 +75,6 @@ function Login() {
                 />
                 Continue with Google
               </button>
-              <button className="w-full border border-gray-300 py-2 rounded-md flex items-center justify-center gap-2 hover:bg-gray-100">
-                <img
-                  src="https://www.svgrepo.com/show/452196/facebook-1.svg"
-                  alt="Facebook"
-                  className="w-5 h-5"
-                />
-                Continue with Facebook
-              </button>
-              <button className="w-full border border-gray-300 py-2 rounded-md flex items-center justify-center gap-2 hover:bg-gray-100">
-                <img
-                  src="https://www.svgrepo.com/show/511330/apple-173.svg"
-                  alt="Apple"
-                  className="w-5 h-5"
-                />
-                Continue with Apple
-              </button>
             </div>
 
             <div className="border-t border-gray-200 my-6" />
