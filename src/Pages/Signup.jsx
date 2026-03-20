@@ -1,4 +1,3 @@
-import reactLogo from "../assets/react.svg";
 import desk from "../assets/desk.jpg";
 import { LayoutTemplate, Users, CircleDollarSign, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -60,9 +59,9 @@ function Login() {
       {/* Navbar */}
       <header className="w-[90%] mx-auto py-5 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <img src={reactLogo} alt="logo" className="w-8 h-8" />
-          <h1 className="font-semibold text-lg">planit</h1>
+          <img src="Logo.png" alt="PlanOra Logo" className="w-40" />
         </div>
+
         {/* <nav className="flex items-center gap-8 text-gray-700 font-medium">
           <a href="#" className="flex items-center gap-1 hover:text-[#105EF5]">
             <LayoutTemplate size={18} /> Templates
@@ -100,22 +99,6 @@ function Login() {
                   className="w-5 h-5"
                 />
                 Continue with Google
-              </button>
-              <button className="w-full border border-gray-300 py-2 rounded-md flex items-center justify-center gap-2 hover:bg-gray-100">
-                <img
-                  src="https://www.svgrepo.com/show/452196/facebook-1.svg"
-                  alt="Facebook"
-                  className="w-5 h-5"
-                />
-                Continue with Facebook
-              </button>
-              <button className="w-full border border-gray-300 py-2 rounded-md flex items-center justify-center gap-2 hover:bg-gray-100">
-                <img
-                  src="https://www.svgrepo.com/show/511330/apple-173.svg"
-                  alt="Apple"
-                  className="w-5 h-5"
-                />
-                Continue with Apple
               </button>
             </div>
 
