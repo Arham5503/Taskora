@@ -1,10 +1,11 @@
 import desk from "../assets/desk.jpg";
 import { LayoutTemplate, Users, CircleDollarSign, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-function Login() {
+function Signup() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -36,7 +37,7 @@ function Login() {
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success("Signed Up successfully!");
+        navigate("/verify", { state: { email } });
         return resetform();
       } else {
         return toast.error(data.message || "Signup failed");
@@ -177,4 +178,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Signup;

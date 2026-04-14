@@ -125,6 +125,7 @@ export default function ProfilePage() {
           return console.log("error");
         }
         const data = await res.json();
+        console.log(data);
         setProfile(data.user);
       } catch (error) {
         console.log(error);

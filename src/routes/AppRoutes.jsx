@@ -3,6 +3,7 @@ import {
   createRoutesFromElements,
   Route,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 import Layout from "../Components/Layout.jsx";
 import Login from "../Pages/Login.jsx";
@@ -18,14 +19,18 @@ import NotificationInbox from "../Pages/Notifications.jsx";
 import ProfilePage from "../Pages/Profile.jsx";
 import JoinProject from "../Pages/JoinProject.jsx";
 import { useAuth } from "../Context/AuthContext.jsx";
+import OTP from "../Pages/OTP-verify.jsx";
 
-// Protected Route Check
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) return <div>Checking auth...</div>;
 
-  return user ? children : <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/" replace />;
+
+  if (!user.is_verified) return <Navigate to="/verify" replace />;
+
+  return children;
 };
 
 const AppRoutes = createBrowserRouter(
@@ -36,6 +41,7 @@ const AppRoutes = createBrowserRouter(
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/join/:inviteCode" element={<JoinProject />} />
+      <Route path="/verify" element={<OTP />} />
 
       {/* PROTECTED */}
       <Route

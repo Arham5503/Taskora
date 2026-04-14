@@ -3,165 +3,261 @@ import { useApp } from "../Context/ThemeContext";
 import { useMemo, useState } from "react";
 
 const priorityColors = {
-  high: "bg-red-100 text-red-600",
-  medium: "bg-yellow-100 text-yellow-600",
-  low: "bg-green-100 text-green-600",
+  high: { bg: "#FEE2E2", text: "#DC2626" },
+  medium: { bg: "#FEF9C3", text: "#CA8A04" },
+  low: { bg: "#DCFCE7", text: "#16A34A" },
 };
 
-const dateFinder = (date) => {
-  return new Date(date).toLocaleDateString("en-US", {
+const dateFinder = (date) =>
+  new Date(date).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
-};
 
 const TaskList = ({ tasks, onCreateClick }) => {
-  const categrizedTasks = (tasks) => {
+  const { colors } = useApp();
+
+  const categorizedTasks = (tasks) => {
     const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
-    const todayTasks = [];
-    const tomorrowTasks = [];
-    const upCommingTasks = [];
+    const todayTasks = [],
+      tomorrowTasks = [],
+      upCommingTasks = [];
+
     tasks.forEach((task) => {
       const due = new Date(task.dueDate);
       const dueStr = due.toDateString();
-      const todayStr = today.toDateString();
-      const tomorrowStr = tomorrow.toDateString();
-
-      if (dueStr === todayStr) {
-        todayTasks.push(task);
-      } else if (dueStr === tomorrowStr) {
-        tomorrowTasks.push(task);
-      } else if (due > tomorrow) {
-        upCommingTasks.push(task);
-      }
+      if (dueStr === today.toDateString()) todayTasks.push(task);
+      else if (dueStr === tomorrow.toDateString()) tomorrowTasks.push(task);
+      else if (due > tomorrow) upCommingTasks.push(task);
     });
+
     return { todayTasks, tomorrowTasks, upCommingTasks };
   };
 
   const { todayTasks, tomorrowTasks, upCommingTasks } = useMemo(
-    () => categrizedTasks(tasks || []),
+    () => categorizedTasks(tasks || []),
     [tasks],
   );
+
   const [activeTab, setActiveTab] = useState("Today");
+
   const getTask = () => {
     if (activeTab === "Today") return todayTasks;
-    else if (activeTab === "Tomorrow") return tomorrowTasks;
+    if (activeTab === "Tomorrow") return tomorrowTasks;
     return upCommingTasks;
   };
-  const { colors } = useApp();
+
+  const tabs = ["Today", "Tomorrow", "Upcoming"];
+
   return (
-    <section className="py-5">
+    <section style={{ padding: "1.25rem 0" }}>
       <div
-        className="p-6 max-w-2xl rounded-lg shadow"
-        style={{ background: colors.cards }}
+        style={{
+          padding: "1.5rem",
+          maxWidth: "42rem",
+          borderRadius: "0.5rem",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+          background: colors.cards,
+        }}
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-medium">My Tasks</h2>
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+            flexWrap: "wrap",
+            gap: "0.5rem",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "clamp(1.125rem, 3vw, 1.5rem)",
+              fontWeight: 500,
+              margin: 0,
+            }}
+          >
+            My Tasks
+          </h2>
           <Link
             to="/tasks"
-            className="px-3 py-2 border-[#E5E5E5] border rounded text-sm font-medium"
+            style={{
+              padding: "0.5rem 0.75rem",
+              border: "1px solid #E5E5E5",
+              borderRadius: "0.375rem",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              color: colors.text,
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+            }}
           >
             View All Tasks
           </Link>
         </div>
 
-        <div className="mb-4">
-          <nav className="flex gap-1 rounded-md items-center justify-between p-1 bg-gray-100 text-sm ">
+        {/* Tab Nav */}
+        <nav
+          style={{
+            display: "flex",
+            gap: "0.25rem",
+            backgroundColor: "#F3F4F6",
+            borderRadius: "0.375rem",
+            padding: "0.25rem",
+            marginBottom: "1rem",
+          }}
+        >
+          {tabs.map((tab) => (
             <button
-              className={`py-1 flex-1 font-medium rounded-md ${activeTab === "Today" ? "bg-white" : ""}`}
-              onClick={() => setActiveTab("Today")}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                flex: 1,
+                padding: "0.375rem 0",
+                fontWeight: 500,
+                fontSize: "0.875rem",
+                borderRadius: "0.25rem",
+                border: "none",
+                cursor: "pointer",
+                background: activeTab === tab ? "#fff" : "transparent",
+                color: activeTab === tab ? "#111" : "#6B7280",
+                boxShadow:
+                  activeTab === tab ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                transition: "all 0.15s",
+              }}
             >
-              Today
+              {tab}
             </button>
-            <button
-              className={`py-1 flex-1 font-medium rounded-md ${activeTab === "Tomorrow" ? "bg-white" : ""}`}
-              onClick={() => setActiveTab("Tomorrow")}
-            >
-              Tomorrow
-            </button>
-            <button
-              className={`py-1 flex-1 font-medium rounded-md ${activeTab === "Upcoming" ? "bg-white" : ""}`}
-              onClick={() => setActiveTab("Upcoming")}
-            >
-              Upcoming
-            </button>
-          </nav>
-        </div>
-        {getTask().map((task, index) => (
-          <div key={index} className="mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-gray-700 font-medium">
-                {task.project.title}
-              </h3>
-              {/* <span className="text-sm text-gray-400">
-                {category.tasks.length} tasks
-              </span> */}
-            </div>
+          ))}
+        </nav>
 
-            <div className="space-y-2">
-              <div
-                key={task._id}
-                className={`flex items-center justify-between p-3 border rounded-lg 
-                    `}
-                // ${task.completed ? "bg-gray-50" : ""}
+        {/* Task items */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {getTask().map((task, index) => (
+            <div key={index}>
+              <h3
+                style={{
+                  fontSize: "0.9375rem",
+                  fontWeight: 500,
+                  color: "#374151",
+                  marginBottom: "0.5rem",
+                }}
               >
-                <div className="flex items-center gap-3">
+                {task.project?.title}
+              </h3>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0.75rem",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "0.5rem",
+                  gap: "0.5rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    minWidth: 0,
+                  }}
+                >
                   <input
                     type="checkbox"
-                    // checked={task.completed}
-                    className="w-5 h-5 text-blue-600 border-gray-300 rounded"
                     readOnly
+                    style={{
+                      width: "1.125rem",
+                      height: "1.125rem",
+                      flexShrink: 0,
+                    }}
                   />
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <p
-                      className={`text-gray-800 
-                        `}
-                      // ${task.completed ? "line-through text-gray-400" : ""}
+                      style={{
+                        fontSize: "0.9375rem",
+                        color: "#1F2937",
+                        margin: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
                     >
                       {task.title}
                     </p>
-                    <span className="text-xs text-gray-400">
+                    <span style={{ fontSize: "0.75rem", color: "#9CA3AF" }}>
                       {dateFinder(task.dueDate)}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    flexShrink: 0,
+                  }}
+                >
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      priorityColors[task.priority]
-                    }`}
+                    style={{
+                      fontSize: "0.75rem",
+                      padding: "0.125rem 0.5rem",
+                      borderRadius: "9999px",
+                      backgroundColor: priorityColors[task.priority]?.bg,
+                      color: priorityColors[task.priority]?.text,
+                    }}
                   >
                     {task.priority}
                   </span>
                   {task.completed && (
-                    <span className="text-xs text-green-600 font-medium">
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#16A34A",
+                        fontWeight: 500,
+                      }}
+                    >
                       Completed
                     </span>
                   )}
-                  <div className="flex -space-x-2">
-                    {/* {task.assigned.map((img, i) => (
-                          <img
-                            key={i}
-                            src={img}
-                            alt="user"
-                            className="w-6 h-6 rounded-full border-2 border-white"
-                          />
-                        ))} */}
-                  </div>
-                  <button className="text-gray-400 text-lg">⋯</button>
+                  <button
+                    style={{
+                      color: "#9CA3AF",
+                      fontSize: "1.25rem",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      lineHeight: 1,
+                    }}
+                  >
+                    ⋯
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         <button
           onClick={onCreateClick}
-          className="w-full border border-gray-300 rounded-lg py-2 mt-2 text-gray-700 cursor-pointer"
+          style={{
+            width: "100%",
+            border: "1px solid #D1D5DB",
+            borderRadius: "0.5rem",
+            padding: "0.5rem 0",
+            marginTop: "0.75rem",
+            color: "#374151",
+            cursor: "pointer",
+            background: "none",
+            fontSize: "0.9375rem",
+          }}
         >
           + Add New Task
         </button>

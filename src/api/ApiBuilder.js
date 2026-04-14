@@ -1,13 +1,47 @@
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // ==================== PROJECT APIs ====================
+//Verify OTP 
+export const verifyOTP = async (email, otp) => {
+  try {
+    const response = await fetch(`${BASE_URL}/verify-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp }),
+      credentials: "include",
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
+    return data;
+  } catch (error) {
+    console.error("API Error (verifyOTP):", error);
+    throw error;
+  }
+};
 
+//Resend OTP
+export const resendOTP = async (email) => {
+  try {
+    const response = await fetch(`${BASE_URL}/resend-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+      credentials: "include",
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
+    return data;
+  } catch (error) {
+    console.error("API Error (resendOTP):", error);
+    throw error;
+  }
+};
 // Fetch all Projects
 export const getProjects = async () => {
   try {
     const response = await fetch(`${BASE_URL}/project-data`, {
       method: "GET",
-      credentials: "include",
+      credentials: "include", 
     });
     if (!response.ok) {
       throw new Error("Failed to fetch projects");

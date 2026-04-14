@@ -4,6 +4,7 @@ import { useApp } from "../Context/ThemeContext";
 
 const TeamMembersDashboard = () => {
   const { colors } = useApp();
+
   const teamMembers = [
     {
       id: 1,
@@ -54,128 +55,267 @@ const TeamMembersDashboard = () => {
 
   return (
     <section
-      className="py-5 rounded-lg"
       style={{
-        background: colors.cards,
+        padding: "1.25rem 0",
+        borderRadius: "0.5rem",
         border: `1px solid ${colors.border}`,
+        background: colors.cards,
+        overflowX: "auto",
       }}
     >
-      <div className="max-w-7xl mx-auto overflow-hidden">
-        <div className="rounded-lg shadow-sm">
-          {/* Header */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Team Members
-                </h1>
-                <p className="text-sm text-gray-500 mt-1">
-                  Performance overview of team members
-                </p>
-              </div>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 rounded-lg transition-colors">
-                <Users className="w-4 h-4" />
-                View All
-              </button>
-            </div>
+      <div style={{ maxWidth: "100%", overflow: "hidden" }}>
+        {/* Header */}
+        <div
+          style={{
+            padding: "1.25rem 1.5rem",
+            borderBottom: "1px solid #E5E7EB",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "0.75rem",
+          }}
+        >
+          <div>
+            <h1
+              style={{
+                fontSize: "clamp(1.125rem, 3vw, 1.5rem)",
+                fontWeight: 700,
+                color: "#111827",
+                margin: 0,
+              }}
+            >
+              Team Members
+            </h1>
+            <p
+              style={{
+                fontSize: "0.875rem",
+                color: "#6B7280",
+                marginTop: "0.25rem",
+                marginBottom: 0,
+              }}
+            >
+              Performance overview of team members
+            </p>
           </div>
+          <button
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.5rem 1rem",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              color: "#374151",
+              background: "none",
+              border: "none",
+              borderRadius: "0.5rem",
+              cursor: "pointer",
+            }}
+          >
+            <Users size="1rem" />
+            View All
+          </button>
+        </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tasks
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Performance
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className=" divide-y divide-gray-200">
-                {teamMembers.map((member) => (
-                  <tr
-                    key={member.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    {/* Name Column */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <img
-                          src={member.avatar}
-                          alt={member.name}
-                          className="w-10 h-10 rounded-full"
-                        />
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {member.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {member.email}
-                          </div>
+        {/* Table */}
+        <div style={{ overflowX: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              minWidth: "36rem",
+            }}
+          >
+            <thead>
+              <tr>
+                {["Name", "Role", "Tasks", "Performance", "Actions"].map(
+                  (col) => (
+                    <th
+                      key={col}
+                      style={{
+                        padding: "0.75rem 1.5rem",
+                        textAlign: "left",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                        color: "#6B7280",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        borderBottom: "1px solid #E5E7EB",
+                      }}
+                    >
+                      {col}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {teamMembers.map((member) => (
+                <tr
+                  key={member.id}
+                  style={{
+                    borderBottom: "1px solid #E5E7EB",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#F9FAFB")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  {/* Name */}
+                  <td style={{ padding: "1rem 1.5rem", whiteSpace: "nowrap" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.75rem",
+                      }}
+                    >
+                      <img
+                        src={member.avatar}
+                        alt={member.name}
+                        style={{
+                          width: "2.5rem",
+                          height: "2.5rem",
+                          borderRadius: "50%",
+                          flexShrink: 0,
+                        }}
+                      />
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "0.9375rem",
+                            fontWeight: 500,
+                            color: "#111827",
+                          }}
+                        >
+                          {member.name}
+                        </div>
+                        <div
+                          style={{ fontSize: "0.8125rem", color: "#6B7280" }}
+                        >
+                          {member.email}
                         </div>
                       </div>
-                    </td>
+                    </div>
+                  </td>
 
-                    {/* Role Column */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">{member.role}</div>
-                    </td>
+                  {/* Role */}
+                  <td
+                    style={{
+                      padding: "1rem 1.5rem",
+                      fontSize: "0.875rem",
+                      color: "#374151",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {member.role}
+                  </td>
 
-                    {/* Tasks Column */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center w-10 h-6 text-xs font-medium text-blue-700 bg-blue-100 rounded-full">
-                          {member.tasks.total}
+                  {/* Tasks */}
+                  <td style={{ padding: "1rem 1.5rem", whiteSpace: "nowrap" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.375rem",
+                      }}
+                    >
+                      {[
+                        {
+                          val: member.tasks.total,
+                          bg: "#DBEAFE",
+                          text: "#1D4ED8",
+                        },
+                        {
+                          val: member.tasks.inProgress,
+                          bg: "#FEF9C3",
+                          text: "#A16207",
+                        },
+                        {
+                          val: member.tasks.completed,
+                          bg: "#DCFCE7",
+                          text: "#15803D",
+                        },
+                      ].map(({ val, bg, text }, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "2.25rem",
+                            height: "1.5rem",
+                            fontSize: "0.75rem",
+                            fontWeight: 500,
+                            backgroundColor: bg,
+                            color: text,
+                            borderRadius: "9999px",
+                          }}
+                        >
+                          {val}
                         </span>
-                        <span className="inline-flex items-center justify-center w-10 h-6 text-xs font-medium text-yellow-700 bg-yellow-100 rounded-full">
-                          {member.tasks.inProgress}
-                        </span>
-                        <span className="inline-flex items-center justify-center w-10 h-6 text-xs font-medium text-green-700 bg-green-100 rounded-full">
-                          {member.tasks.completed}
-                        </span>
-                      </div>
-                    </td>
+                      ))}
+                    </div>
+                  </td>
 
-                    {/* Performance Column */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center gap-1 px-3 py-1 text-sm font-medium rounded-full ${
+                  {/* Performance */}
+                  <td style={{ padding: "1rem 1.5rem", whiteSpace: "nowrap" }}>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        padding: "0.25rem 0.75rem",
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                        borderRadius: "9999px",
+                        backgroundColor:
                           member.performance.trend === "up"
-                            ? "text-green-700 bg-green-100"
-                            : "text-red-700 bg-red-100"
-                        }`}
-                      >
-                        {member.performance.trend === "up" ? (
-                          <TrendingUp className="w-3 h-3" />
-                        ) : (
-                          <TrendingDown className="w-3 h-3" />
-                        )}
-                        {member.performance.label}
-                      </span>
-                    </td>
+                            ? "#DCFCE7"
+                            : "#FEE2E2",
+                        color:
+                          member.performance.trend === "up"
+                            ? "#15803D"
+                            : "#B91C1C",
+                      }}
+                    >
+                      {member.performance.trend === "up" ? (
+                        <TrendingUp size="0.75rem" />
+                      ) : (
+                        <TrendingDown size="0.75rem" />
+                      )}
+                      {member.performance.label}
+                    </span>
+                  </td>
 
-                    {/* Actions Column */}
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  {/* Actions */}
+                  <td
+                    style={{
+                      padding: "1rem 1.5rem",
+                      textAlign: "right",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <button
+                      style={{
+                        color: "#9CA3AF",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "0.25rem",
+                      }}
+                    >
+                      <MoreVertical size="1.25rem" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
