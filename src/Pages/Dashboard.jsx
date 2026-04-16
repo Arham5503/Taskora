@@ -7,6 +7,8 @@ import CreateTask from "../models/CreateTask";
 import { useOutletContext } from "react-router-dom";
 import Analytics from "../Components/Analytics";
 import { getProjects, getMyTasks } from "../api/ApiBuilder";
+import AreaCharts from "../Components/AreaChart";
+import DonutChart from "../Components/Donut";
 
 function Dashboard() {
   const { showCreateModel, setShowCreateModel } = useOutletContext();
@@ -41,6 +43,11 @@ function Dashboard() {
         <Analytics projects={projects} tasks={tasks} loading={loading} />
         {/* Projects */}
         <Projects projectsData={projects} onRefresh={fetchData} />
+        {/* Area Chart */}
+        <div className="flex">
+          <AreaCharts />
+          <DonutChart />
+        </div>
         {/* Tasks */}
         <TaskList tasks={tasks} onCreateClick={() => setIsOpen(true)} />
         {/* Team Members */}
