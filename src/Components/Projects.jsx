@@ -1,15 +1,14 @@
-import { FileText, Calendar, Star } from "lucide-react";
+import { FileText, Calendar } from "lucide-react";
 import { useContext } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
+
 function Projects({ projectsData }) {
   const { colors } = useContext(AppSettingsContext);
-  console.log(projectsData);
-  // get date function
+
   const dateFinder = (days) => {
     if (typeof days !== "number") return "N/A";
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + days);
-
     return futureDate.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -17,137 +16,217 @@ function Projects({ projectsData }) {
     });
   };
 
+  const getStatus = (stat) => {
+    if (stat === "in_progress") return "In Progress";
+    if (stat === "completed") return "Completed";
+    if (stat === "on_hold") return "On Hold";
+    return "Planning";
+  };
+
+  const statusBg = (status) => {
+    if (status === "completed") return { bg: "#DCFCE7", text: "#166534" };
+    if (status === "planning") return { bg: "#DBEAFE", text: "#1E40AF" };
+    return { bg: "#FEF9C3", text: "#854D0E" };
+  };
+
+  const borderColor = (status) => {
+    if (status === "completed") return "#22C55E";
+    if (status === "planning") return "#3B82F6";
+    return "#EAB308";
+  };
+
   return (
-    <>
-      {/* Projects */}
-      <section className="py-5">
-        <h1 className="text-2xl font-medium" style={{ color: colors.boldText }}>
-          Project Overview
-        </h1>
-        {/* Project card */}
-        {Array.isArray(projectsData) && projectsData.length > 0 ? (
-          <div className="grid grid-cols-2 gap-6 my-4">
-            {projectsData.slice(0, 4).map((card) => (
+    <section style={{ padding: "1.25rem 0" }}>
+      <h1
+        style={{
+          fontSize: "clamp(1.25rem, 3vw, 1.5rem)",
+          fontWeight: 500,
+          color: colors.boldText,
+          marginBottom: "1rem",
+        }}
+      >
+        Project Overview
+      </h1>
+
+      {Array.isArray(projectsData) && projectsData.length > 0 ? (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(min(100%, 18rem), 1fr))",
+            gap: "1.5rem",
+          }}
+        >
+          {projectsData.slice(0, 4).map((card) => (
+            <div
+              key={card._id}
+              style={{
+                border: "1px solid #E5E5E5",
+                borderRadius: "0.5rem",
+                padding: "1rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.5rem",
+                background: colors.cards,
+                color: colors.text,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              }}
+            >
+              {/* Header */}
               <div
-                key={card._id}
-                className="border border-[#E5E5E5] flex flex-col gap-6 rounded-lg p-4 shadow-sm"
-                style={{ background: colors.cards, color: colors.text }}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: "0.75rem",
+                }}
               >
-                {/* Header */}
-                <div className="flex justify-between items-start mb-3">
-                  <div
-                    className=" pl-2 flex-1"
+                <div
+                  style={{
+                    paddingLeft: "0.5rem",
+                    flex: 1,
+                    borderLeft: `4px solid ${borderColor(card.status)}`,
+                    minWidth: 0,
+                  }}
+                >
+                  <h2
                     style={{
-                      borderLeft: `4px solid ${
-                        card.status === "Completed"
-                          ? "#22C55E"
-                          : card.status === "Planning"
-                            ? "#3B82F6"
-                            : "#EAB308"
-                      }`,
+                      fontSize: "1.0625rem",
+                      fontWeight: 500,
+                      color: colors.boldText,
+                      margin: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    <div className="flex items-center gap-2">
-                      <h2
-                        className="text-[18px] font-medium "
-                        style={{ color: colors.boldText }}
-                      >
-                        {card.title || "Untitled Project"}
-                      </h2>
-                      <span
-                        style={{
-                          color:
-                            card.status === "Completed" ? "#22C55E" : "#EAB308",
-                        }}
-                      >
-                        {card?.icon}
-                      </span>
-                    </div>
-                    <p className="text-[14px] text-[#A6A6A6]">
-                      {card.description || card.disc || "No description"}
-                    </p>
-                  </div>
-                  <div
-                    className="text-[14px] px-3 py-1 rounded-full "
+                    {card.title || "Untitled Project"}
+                  </h2>
+                  <p
                     style={{
-                      backgroundColor:
-                        card.status === "Completed"
-                          ? "#DCFCE7"
-                          : card.status === "Planning"
-                            ? "#DBEAFE"
-                            : "#FEF9C3",
-                      color:
-                        card.status === "Completed"
-                          ? "#166534"
-                          : card.status === "Planning"
-                            ? "#1E40AF"
-                            : "#854D0E",
+                      fontSize: "0.875rem",
+                      color: "#A6A6A6",
+                      margin: "0.25rem 0 0",
                     }}
                   >
-                    {card.status}
-                  </div>
+                    {card.description || card.disc || "No description"}
+                  </p>
                 </div>
-                <div>
-                  {/* Deadline */}
-                  <div className="flex items-center text-gray-500 mb-3">
-                    <Calendar className="w-5 h-5" />
-                    <span className="ml-2 text-[14px]">
-                      Deadline: {dateFinder(card.durationDays)}
-                    </span>
-                  </div>
 
-                  {/* Progress */}
+                <span
+                  style={{
+                    fontSize: "0.8125rem",
+                    padding: "0.25rem 0.75rem",
+                    borderRadius: "9999px",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                    backgroundColor: statusBg(card.status).bg,
+                    color: statusBg(card.status).text,
+                  }}
+                >
+                  {getStatus(card.status)}
+                </span>
+              </div>
+
+              <div>
+                {/* Deadline */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "#6B7280",
+                    marginBottom: "0.75rem",
+                    fontSize: "0.875rem",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <Calendar size="1.125rem" />
+                  <span>Deadline: {dateFinder(card.durationDays)}</span>
+                </div>
+
+                {/* Progress */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "0.875rem",
+                    marginBottom: "0.375rem",
+                    color: colors.text,
+                  }}
+                >
+                  <span>Progress</span>
+                  <span>{card.progress ?? 0}%</span>
+                </div>
+                <div
+                  style={{
+                    height: "0.5rem",
+                    borderRadius: "0.375rem",
+                    overflow: "hidden",
+                    backgroundColor: "#F5F5F5",
+                  }}
+                >
                   <div
-                    className="flex justify-between items-center text-[14px] my-2"
-                    style={{ color: colors.text }}
+                    style={{
+                      backgroundColor: "#000",
+                      height: "100%",
+                      width: `${card.progress ?? 0}%`,
+                      transition: "width 0.3s ease",
+                    }}
+                  />
+                </div>
+
+                {/* Team & Tasks */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginTop: "0.75rem",
+                  }}
+                >
+                  <div style={{ display: "flex", marginLeft: "-0.375rem" }}>
+                    {[
+                      "alex-morgan.png",
+                      "david-kim.png",
+                      "jessica-chen.png",
+                    ].map((src, i) => (
+                      <img
+                        key={i}
+                        src={src}
+                        alt="team"
+                        style={{
+                          width: "1.75rem",
+                          height: "1.75rem",
+                          borderRadius: "50%",
+                          border: "2px solid white",
+                          marginLeft: i === 0 ? 0 : "-0.5rem",
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      color: "#6B7280",
+                      fontSize: "0.875rem",
+                    }}
                   >
-                    <span>Progress</span>
-                    <span>{card.progress ?? 0}%</span>
-                  </div>
-                  <div className="h-2 rounded-md overflow-hidden bg-[#F5F5F5]">
-                    <div
-                      className="bg-black h-full"
-                      style={{ width: `${card.progress}%` }}
-                    ></div>
-                  </div>
-
-                  {/* Team & Tasks */}
-                  <div className="flex justify-between items-center mt-3">
-                    {/* Team avatars */}
-                    <div className="flex -space-x-2">
-                      <img
-                        className="w-7 h-7 rounded-full border-2 border-white"
-                        src="alex-morgan.png"
-                        alt="Alex"
-                      />
-                      <img
-                        className="w-7 h-7 rounded-full border-2 border-white"
-                        src="david-kim.png"
-                        alt="David"
-                      />
-                      <img
-                        className="w-7 h-7 rounded-full border-2 border-white"
-                        src="jessica-chen.png"
-                        alt="Jessica"
-                      />
-                    </div>
-
-                    {/* Tasks */}
-                    <div className="flex items-center gap-1 text-gray-500 text-[14px]">
-                      <FileText className="w-4 h-4 stroke-gray-400" />
-                      {/* <span>{card.tasks} tasks</span> */}
-                      <span>0 tasks</span>
-                    </div>
+                    <FileText size="1rem" style={{ stroke: "#9CA3AF" }} />
+                    <span>0 tasks</span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          "No Projects Created Yet"
-        )}
-      </section>
-    </>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p style={{ color: colors.text }}>No Projects Created Yet</p>
+      )}
+    </section>
   );
 }
+
 export default Projects;

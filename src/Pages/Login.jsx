@@ -1,5 +1,12 @@
 import desk from "../assets/desk.jpg";
-import { LayoutTemplate, Users, CircleDollarSign, Lock } from "lucide-react";
+import {
+  LayoutTemplate,
+  Users,
+  CircleDollarSign,
+  Lock,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -8,6 +15,7 @@ import { useAuth } from "../Context/AuthContext";
 function Login() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
+  const [viewPassword, setViewPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -30,9 +38,12 @@ function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        // toast.success("Logged In Successfully!");
         setUser(data.user);
-        return navigate("/dashboard");
+        if (!data.user.is_verified) {
+          navigate("/verify", { state: { email: data.user.email } });
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         toast.error(data.message || " hello world");
       }
@@ -61,7 +72,7 @@ function Login() {
       {/* Main Content */}
       <section className="flex flex-1 py-4">
         {/* Left Side - Login Form */}
-        <div className="w-1/2 flex flex-col justify-center items-center bg-white px-16">
+        <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-white px-16">
           <div className="w-full max-w-sm">
             <h2 className="text-3xl font-bold mb-1">Welcome Back</h2>
             <p className="text-gray-600 mb-6">Sign in to continue</p>
@@ -87,17 +98,27 @@ function Login() {
                 onChange={handleChange}
                 className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
               />
-              <input
-                type="password"
-                placeholder="Password"
-                name="password"
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
-              />
-              <button
-                type="submit"
-                className="w-full cursor-pointer bg-[#105EF5] text-white py-2 rounded-md font-semibold hover:bg-[#0d4ed1]"
-              >
+              <span className="flex relative">
+                <input
+                  type={viewPassword ? "text" : "password"}
+                  placeholder="Password"
+                  name="password"
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-[#105EF5] outline-none"
+                />
+                <span
+                  type="butt"
+                  className="absolute top-2 right-2 cursor-pointer"
+                  onClick={() => setViewPassword(!viewPassword)}
+                >
+                  {viewPassword ? (
+                    <EyeOff stroke="#877d7d" />
+                  ) : (
+                    <Eye stroke="#877d7d" />
+                  )}
+                </span>
+              </span>
+              <button className="w-full cursor-pointer bg-[#105EF5] text-white py-2 rounded-md font-semibold hover:bg-[#0d4ed1]">
                 Sign in
               </button>
             </form>
@@ -122,7 +143,7 @@ function Login() {
             </p>
           </div>
         </div>
-        <div className="w-1/2 h-full overflow-hidden rounded-l-3xl">
+        <div className="hidden md:block md:w-1/2 h-full overflow-hidden rounded-l-3xl">
           <img
             src={desk}
             alt="Laptop desk"
