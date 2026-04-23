@@ -7,8 +7,10 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-
+import { useContext } from "react";
+import { AppSettingsContext } from "../Context/ThemeContext";
 function AreaCharts() {
+  const { colors } = useContext(AppSettingsContext);
   const totallTasks = [
     { name: "Jan", tasks: 40, completed: 28 },
     { name: "Feb", tasks: 30, completed: 19 },
@@ -26,8 +28,18 @@ function AreaCharts() {
 
   return (
     <div className="flex-3">
-      <h1>Project Analytics</h1>
-      <p>Task completion and project progress over time</p>
+      <h1
+        style={{
+          fontSize: "clamp(1.25rem, 3vw, 1.5rem)",
+          fontWeight: 500,
+          color: colors.boldText,
+        }}
+      >
+        Project Analytics
+      </h1>
+      <p className="text-[#737373] text-sm mb-4">
+        Task completion and project progress over time
+      </p>
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={totallTasks}>
           <CartesianGrid strokeDasharray="3 3" opacity={0.5} />

@@ -43,7 +43,6 @@ function Signup() {
         return toast.error(data.message || "Signup failed");
       }
     } catch (error) {
-      console.log(error);
       return toast.error("Something went wrong!");
     }
   };

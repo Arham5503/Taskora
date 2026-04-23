@@ -64,7 +64,6 @@ function ProjectsPage() {
     try {
       const data = await getProjects();
       setProjects(data);
-      console.log(data);
     } catch (error) {
       console.error(error);
     } finally {

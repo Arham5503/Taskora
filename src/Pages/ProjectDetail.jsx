@@ -140,7 +140,9 @@ export default function ProjectDetail() {
   };
 
   const formatStatus = (status) => {
-    return status?.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "";
+    return (
+      status?.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()) || ""
+    );
   };
 
   const groupedTasks = {
@@ -188,7 +190,9 @@ export default function ProjectDetail() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{project.title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {project.title}
+            </h1>
             <p className="text-gray-600">{project.description}</p>
           </div>
           <div className="flex items-center gap-3">
@@ -220,14 +224,16 @@ export default function ProjectDetail() {
               {project.startDate
                 ? new Date(
                     new Date(project.startDate).getTime() +
-                      project.durationDays * 24 * 60 * 60 * 1000
+                      project.durationDays * 24 * 60 * 60 * 1000,
                   ).toLocaleDateString()
                 : "N/A"}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-600">{team.team?.length || 0} members</span>
+            <span className="text-gray-600">
+              {team.team?.length || 0} members
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-gray-500" />
@@ -248,7 +254,6 @@ export default function ProjectDetail() {
           </div>
         </div>
       </div>
-
       {/* Tabs */}
       <div className="bg-white border-b border-gray-200 px-6">
         <div className="flex gap-6">
@@ -267,7 +272,6 @@ export default function ProjectDetail() {
           ))}
         </div>
       </div>
-
       {/* Content */}
       <div className="p-6">
         {activeTab === "tasks" && (
@@ -305,8 +309,8 @@ export default function ProjectDetail() {
                                     status === "todo"
                                       ? "in_progress"
                                       : status === "in_progress"
-                                      ? "in_review"
-                                      : "done"
+                                        ? "in_review"
+                                        : "done",
                                   )
                                 }
                                 className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
@@ -331,7 +335,7 @@ export default function ProjectDetail() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
                           className={`text-xs px-2 py-1 rounded capitalize ${getPriorityColor(
-                            task.priority
+                            task.priority,
                           )}`}
                         >
                           {task.priority}
@@ -356,7 +360,9 @@ export default function ProjectDetail() {
                               className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium border-2 border-white -ml-1 first:ml-0"
                               title={assignee.username || assignee.email}
                             >
-                              {(assignee.username || assignee.email || "U")[0].toUpperCase()}
+                              {(assignee.username ||
+                                assignee.email ||
+                                "U")[0].toUpperCase()}
                             </div>
                           ))}
                         </div>
@@ -394,13 +400,17 @@ export default function ProjectDetail() {
                 <div className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-medium">
-                      {(team.owner.username || team.owner.email || "O")[0].toUpperCase()}
+                      {(team.owner.username ||
+                        team.owner.email ||
+                        "O")[0].toUpperCase()}
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">
                         {team.owner.username || "Unknown"}
                       </div>
-                      <div className="text-sm text-gray-500">{team.owner.email}</div>
+                      <div className="text-sm text-gray-500">
+                        {team.owner.email}
+                      </div>
                     </div>
                   </div>
                   <span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full font-medium">
@@ -418,13 +428,17 @@ export default function ProjectDetail() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
-                        {(member.username || member.email || "M")[0].toUpperCase()}
+                        {(member.username ||
+                          member.email ||
+                          "M")[0].toUpperCase()}
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">
                           {member.username || "Unknown"}
                         </div>
-                        <div className="text-sm text-gray-500">{member.email}</div>
+                        <div className="text-sm text-gray-500">
+                          {member.email}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -447,7 +461,6 @@ export default function ProjectDetail() {
           </div>
         )}
       </div>
-
       {/* Create Task Modal */}
       <CreateTask
         open={showCreateTask}
@@ -455,7 +468,6 @@ export default function ProjectDetail() {
         projectId={projectId}
         onSuccess={fetchProjectData}
       />
-
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -473,7 +485,8 @@ export default function ProjectDetail() {
               </button>
             </div>
             <p className="text-gray-500 text-sm mb-4">
-              Share this link with your team member to invite them to the project.
+              Share this link with your team member to invite them to the
+              project.
             </p>
             <div className="flex gap-2">
               <input
@@ -486,7 +499,11 @@ export default function ProjectDetail() {
                 onClick={copyInviteLink}
                 className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2"
               >
-                {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {linkCopied ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
                 {linkCopied ? "Copied!" : "Copy"}
               </button>
             </div>
@@ -496,6 +513,8 @@ export default function ProjectDetail() {
           </div>
         </div>
       )}
+      {/* Team Members
+      <TeamMembersDashboard /> */}
     </div>
   );
 }

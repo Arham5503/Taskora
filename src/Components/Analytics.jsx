@@ -4,12 +4,19 @@ import {
   Clock,
   CircleCheckBig,
   CircleAlert,
+  ArrowDownRight,
 } from "lucide-react";
 import { useContext, useMemo } from "react";
 import { AppSettingsContext } from "../Context/ThemeContext";
 
 function Analytics({ projects }) {
   const { colors } = useContext(AppSettingsContext);
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const startOfCurrentMonth = new Date(currentYear, currentMonth, 1);
+  const startOfLastMonth = new Date(currentYear, currentMonth - 1, 1);
+  const endOfLastMonth = new Date(startOfCurrentMonth - 1);
 
   const analytics = useMemo(() => {
     const summary = {
@@ -17,26 +24,54 @@ function Analytics({ projects }) {
       inProgress: 0,
       completed: 0,
       overdue: 0,
+      lastMonthProjects: 0,
+      currentMonthProjects: 0,
+      lastMonthProgress: 0,
+      currentMonthProgress: 0,
+      lastMonthCompleted: 0,
+      currentMonthCompleted: 0,
     };
 
     if (projects.length > 0) {
       projects.forEach((project) => {
+        const createdAt = new Date(project.createdAt);
         if (project.status === "planning" || project.status === "in_progress") {
           summary.inProgress++;
+          if (createdAt <= endOfLastMonth && createdAt >= startOfLastMonth) {
+            summary.lastMonthProgress++;
+          }
+          if (createdAt <= now && createdAt >= startOfCurrentMonth) {
+            summary.currentMonthProgress++;
+          }
         }
         if (project.status === "completed") {
           summary.completed++;
+          if (createdAt <= endOfLastMonth && createdAt >= startOfLastMonth) {
+            summary.lastMonthCompleted++;
+          }
+          if (createdAt <= now && createdAt >= startOfCurrentMonth) {
+            summary.currentMonthCompleted++;
+          }
+        }
+        if (createdAt <= endOfLastMonth && createdAt >= startOfLastMonth) {
+          summary.lastMonthProjects++;
+        }
+        if (createdAt <= now && createdAt >= startOfCurrentMonth) {
+          summary.currentMonthProjects++;
+        }
+        if (createdAt > now) {
+          summary.overdue++;
         }
       });
     }
+
     return summary;
   }, [projects]);
-
   const analyticCards = [
     {
       id: 0,
       icon1: <FileText size="1.25rem" />,
-      icon2Value: "+2",
+      icon2Value: analytics.currentMonthProjects - analytics.lastMonthProjects,
       title: "Total Projects",
       numbers: analytics.all,
       from: "from last month",
@@ -44,7 +79,7 @@ function Analytics({ projects }) {
     {
       id: 1,
       icon1: <Clock size="1.25rem" />,
-      icon2Value: "+3",
+      icon2Value: analytics.currentMonthProgress - analytics.lastMonthProgress,
       title: "In Progress",
       numbers: analytics.inProgress,
       from: "from last month",
@@ -52,7 +87,8 @@ function Analytics({ projects }) {
     {
       id: 2,
       icon1: <CircleCheckBig size="1.25rem" />,
-      icon2Value: "+1",
+      icon2Value:
+        analytics.currentMonthCompleted - analytics.lastMonthCompleted,
       title: "Completed",
       numbers: analytics.completed,
       from: "from last month",
@@ -60,7 +96,7 @@ function Analytics({ projects }) {
     {
       id: 3,
       icon1: <CircleAlert size="1.25rem" />,
-      icon2Value: "-1",
+      icon2Value: analytics.overdue,
       title: "Over Due",
       numbers: analytics.overdue,
       from: "from last month",
@@ -119,11 +155,16 @@ function Analytics({ projects }) {
                   display: "flex",
                   alignItems: "center",
                   gap: "0.25rem",
-                  color: "#16a34a",
+                  color: `${analytic.icon2Value > 0 ? "#16a34a" : "#DC2626"}`,
                   fontSize: "0.875rem",
                 }}
               >
-                <ArrowUpRight size="1rem" />
+                {analytic.icon2Value > 0 ? (
+                  <ArrowUpRight size="1rem" />
+                ) : (
+                  <ArrowDownRight stroke="#DC2626" size="1rem" />
+                )}
+
                 {analytic.icon2Value}
               </span>
             </div>

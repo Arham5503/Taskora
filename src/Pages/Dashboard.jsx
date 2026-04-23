@@ -26,7 +26,7 @@ function Dashboard() {
       setProjects(projectsData);
       setTasks(tasksData);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -50,8 +50,6 @@ function Dashboard() {
         </div>
         {/* Tasks */}
         <TaskList tasks={tasks} onCreateClick={() => setIsOpen(true)} />
-        {/* Team Members */}
-        <TeamMembersDashboard />
       </main>
       <CreateProject
         open={showCreateModel}

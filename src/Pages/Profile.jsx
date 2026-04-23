@@ -98,7 +98,7 @@ export default function ProfilePage() {
       });
 
       if (!res.ok) {
-        console.log("error");
+        console.error("error");
         return;
       }
 
@@ -106,7 +106,7 @@ export default function ProfilePage() {
       setProfile(data.user);
       setIsEditing(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
   const handleCancel = () => {
@@ -122,13 +122,13 @@ export default function ProfilePage() {
           credentials: "include",
         });
         if (!res.ok) {
-          return console.log("error");
+          return console.error("error");
         }
         const data = await res.json();
-        console.log(data);
+
         setProfile(data.user);
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     }
     fetchUser();
