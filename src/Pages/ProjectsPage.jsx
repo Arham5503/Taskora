@@ -64,7 +64,6 @@ function ProjectsPage() {
     try {
       const data = await getProjects();
       setProjects(data);
-      console.log(data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -104,6 +103,7 @@ function ProjectsPage() {
       toast.success(`Project status updated to ${newStatus.replace("_", " ")}`);
       fetchProjects();
     } catch (error) {
+      console.error(error);
       toast.error("Failed to update project status");
     }
     setActiveActionMenu(null);
@@ -117,6 +117,7 @@ function ProjectsPage() {
       toast.success("Project deleted successfully");
       fetchProjects();
     } catch (error) {
+      console.error(error);
       toast.error("Failed to delete project");
     }
     setShowDeleteConfirm(null);
@@ -130,6 +131,7 @@ function ProjectsPage() {
       setInviteLink(response.inviteUrl);
       setShowInviteModal(projectId);
     } catch (error) {
+      console.error(error);
       toast.error("Failed to generate invite link");
     }
     setActiveActionMenu(null);
@@ -311,8 +313,8 @@ function ProjectsPage() {
                           className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium border-2 border-white -ml-2 first:ml-0"
                           title={member.username || member.email}
                         >
-                          {(member.username ||
-                            member.email ||
+                          {(member.user.username ||
+                            member.user.email ||
                             "U")[0].toUpperCase()}
                         </div>
                       ))}
@@ -436,15 +438,7 @@ function ProjectsPage() {
                           </div>
                         )}
                       </div>
-                      <button
-                        onClick={() =>
-                          handleStatusChange(project._id, "completed")
-                        }
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        Mark as Completed
-                      </button>
+
                       <button
                         onClick={() =>
                           handleStatusChange(project._id, "on_hold")
@@ -454,15 +448,7 @@ function ProjectsPage() {
                         <PauseCircle className="w-4 h-4" />
                         Put on Hold
                       </button>
-                      <button
-                        onClick={() =>
-                          handleStatusChange(project._id, "archived")
-                        }
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
-                      >
-                        <Archive className="w-4 h-4" />
-                        Archive Project
-                      </button>
+
                       <div className="border-t border-gray-100 mt-1 pt-1">
                         <button
                           onClick={() => setShowDeleteConfirm(project._id)}

@@ -10,7 +10,6 @@ function OTP() {
   const { user } = useAuth();
   const email = location.state?.email || user?.email;
 
-  console.log(email);
   const [time, setTimer] = useState(60);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);

@@ -26,7 +26,7 @@ function Dashboard() {
       setProjects(projectsData);
       setTasks(tasksData);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -43,15 +43,20 @@ function Dashboard() {
         <Analytics projects={projects} tasks={tasks} loading={loading} />
         {/* Projects */}
         <Projects projectsData={projects} onRefresh={fetchData} />
-        {/* Area Chart */}
-        <div className="flex">
+        {/* Area Chart + Donut */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "1.5rem",
+            alignItems: "flex-start",
+          }}
+        >
           <AreaCharts />
           <DonutChart />
         </div>
         {/* Tasks */}
         <TaskList tasks={tasks} onCreateClick={() => setIsOpen(true)} />
-        {/* Team Members */}
-        <TeamMembersDashboard />
       </main>
       <CreateProject
         open={showCreateModel}

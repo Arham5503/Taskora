@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       setUser(data.user || null);
     } catch (err) {
+      console.error(err);
       setUser(null);
     } finally {
       setLoading(false);
@@ -38,7 +39,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     fetchUser();
   }, []);
-
   return (
     <AuthContext.Provider value={{ user, setUser, loading }}>
       {children}

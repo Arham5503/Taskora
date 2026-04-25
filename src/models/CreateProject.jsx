@@ -14,10 +14,8 @@ export default function CreateProject({ open, onClose, onSuccess }) {
   });
 
   // Real users state
-  const [allUsers, setAllUsers] = useState([]); // all users from DB
-  const [selectedTeam, setSelectedTeam] = useState([]); // picked members: [{_id, username, title, profile, permission}]
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   // Fetch all users when modal opens
@@ -31,9 +29,16 @@ export default function CreateProject({ open, onClose, onSuccess }) {
         });
         if (res.ok) {
           const data = await res.json();
-          setAllUsers(data);
+          // Initialize each user with a 'selected' property and default role
+          const usersWithSelection = data.map((user) => ({
+            ...user,
+            selected: false,
+            role: "viewer", // default role
+          }));
+          setAllUsers(usersWithSelection);
         }
       } catch (err) {
+        console.error(err);
         toast.error("Failed to load users");
       } finally {
         setLoadingUsers(false);
@@ -56,33 +61,50 @@ export default function CreateProject({ open, onClose, onSuccess }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Add a user to selected team
-  const addMember = (user) => {
-    if (selectedTeam.find((m) => m._id === user._id)) return; // already added
-    setSelectedTeam((prev) => [...prev, { ...user, permission: "editor" }]);
-    setSearchQuery("");
-    setShowDropdown(false);
+  // Handle checkbox selection for team member
+  const handleMemberSelection = (userId, isSelected) => {
+    setAllUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user._id === userId ? { ...user, selected: isSelected } : user,
+      ),
+    );
+
+    if (isSelected) {
+      // Add to selected team
+      const user = allUsers.find((u) => u._id === userId);
+      if (user && !selectedTeam.find((m) => m._id === userId)) {
+        setSelectedTeam((prev) => [
+          ...prev,
+          {
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            profile: user.profile,
+            title: user.title,
+            role: user.role || "viewer",
+          },
+        ]);
+      }
+    } else {
+      // Remove from selected team
+      setSelectedTeam((prev) => prev.filter((m) => m._id !== userId));
+    }
   };
 
-  // Remove a member from team
-  const removeMember = (userId) => {
-    setSelectedTeam((prev) => prev.filter((m) => m._id !== userId));
-  };
-
-  // Change permission of a selected member
+  // Change role/permission of a selected member
   const changePermission = (userId, permission) => {
+    // Update in allUsers
+    setAllUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user._id === userId ? { ...user, role: permission } : user,
+      ),
+    );
+
+    // Update in selectedTeam
     setSelectedTeam((prev) =>
-      prev.map((m) => (m._id === userId ? { ...m, permission } : m)),
+      prev.map((m) => (m._id === userId ? { ...m, role: permission } : m)),
     );
   };
-
-  // Users NOT already selected, filtered by search
-  const filteredUsers = allUsers.filter(
-    (u) =>
-      !selectedTeam.find((m) => m._id === u._id) &&
-      (u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchQuery.toLowerCase())),
-  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,17 +117,23 @@ export default function CreateProject({ open, onClose, onSuccess }) {
       toast.error("Please fill all required fields");
       return;
     }
+
     try {
       const payload = {
         ...formData,
-        team: selectedTeam.map((m) => m._id), // send only IDs
+        team: selectedTeam.map((m) => ({
+          _id: m._id,
+          permission: m.role,
+        })),
       };
+
       const res = await fetch("http://localhost:2004/api/project", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         credentials: "include",
       });
+
       if (res.ok) {
         toast.success("Project created successfully!");
         setFormData({
@@ -116,14 +144,17 @@ export default function CreateProject({ open, onClose, onSuccess }) {
           client: "",
         });
         setSelectedTeam([]);
+        setAllUsers([]);
         setDays(1);
         setDue("days");
         onClose();
         if (onSuccess) onSuccess();
       } else {
-        toast.error("Failed to create project");
+        const error = await res.json();
+        toast.error(error.message || "Failed to create project");
       }
     } catch (error) {
+      console.error(error);
       toast.error("An error occurred while creating the project");
     }
   };
@@ -138,7 +169,7 @@ export default function CreateProject({ open, onClose, onSuccess }) {
         className="bg-white rounded-lg w-full max-w-4xl mx-auto z-50 max-h-[98vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="px-5 py-3 border-b flex items-center justify-between">
+        <div className="px-5 py-3 border-b flex items-center justify-between sticky top-0 bg-white z-10">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
               Create New Project
@@ -192,128 +223,79 @@ export default function CreateProject({ open, onClose, onSuccess }) {
                 </h3>
 
                 {/* Selected members list */}
-                <div className="space-y-2 mb-3">
-                  {selectedTeam.length === 0 && (
-                    <p className="text-sm text-gray-400 italic">
-                      No team members added yet.
-                    </p>
+                <div className="space-y-2 mb-3 max-h-96 overflow-y-auto">
+                  {loadingUsers ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Loading users...
+                      </p>
+                    </div>
+                  ) : (
+                    allUsers.map((user) => (
+                      <div
+                        key={user._id}
+                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Checkbox for selection */}
+                          <input
+                            type="checkbox"
+                            checked={user.selected || false}
+                            onChange={(e) =>
+                              handleMemberSelection(user._id, e.target.checked)
+                            }
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                          />
+
+                          {/* Avatar */}
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm overflow-hidden">
+                            {user.profile ? (
+                              <img
+                                src={user.profile}
+                                alt={user.username}
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            ) : (
+                              user.username.slice(0, 2).toUpperCase()
+                            )}
+                          </div>
+
+                          {/* User Info */}
+                          <div>
+                            <div className="font-semibold text-gray-900">
+                              {user.username}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {user.title || user.email}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Role Selector - Only show if user is selected */}
+                        {user.selected && (
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={user.role || "viewer"}
+                              onChange={(e) =>
+                                changePermission(user._id, e.target.value)
+                              }
+                              className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                            >
+                              <option value="owner">Owner</option>
+                              <option value="manager">Manager</option>
+                              <option value="contributor">Contributor</option>
+                              <option value="viewer">Viewer</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    ))
                   )}
-                  {selectedTeam.map((member) => (
-                    <div
-                      key={member._id}
-                      className="flex items-center justify-between p-2 border border-gray-200 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        {/* Avatar: profile image or initials */}
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm overflow-hidden">
-                          {member.profile ? (
-                            <img
-                              src={member.profile}
-                              alt={member.username}
-                              className="w-full h-full object-cover rounded-full"
-                            />
-                          ) : (
-                            member.username.slice(0, 2).toUpperCase()
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-900">
-                            {member.username}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {member.title || member.email}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={member.permission}
-                          onChange={(e) =>
-                            changePermission(member._id, e.target.value)
-                          }
-                          className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                        >
-                          <option value="owner">Owner</option>
-                          <option value="editor">Editor</option>
-                          <option value="viewer">Viewer</option>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => removeMember(member._id)}
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Search & Add member */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setShowDropdown((v) => !v)}
-                    className="flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 cursor-pointer"
-                  >
-                    <Plus size={20} />
-                    Add Team Member
-                  </button>
-
-                  {showDropdown && (
-                    <div className="absolute left-0 top-8 z-50 w-72 bg-white border border-gray-200 rounded-lg shadow-lg">
-                      <div className="p-2 border-b flex items-center gap-2">
-                        <Search size={16} className="text-gray-400" />
-                        <input
-                          autoFocus
-                          type="text"
-                          placeholder="Search by name or email..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="flex-1 text-sm outline-none"
-                        />
-                      </div>
-                      <div className="max-h-48 overflow-y-auto">
-                        {loadingUsers && (
-                          <p className="text-sm text-gray-400 p-3">
-                            Loading users...
-                          </p>
-                        )}
-                        {!loadingUsers && filteredUsers.length === 0 && (
-                          <p className="text-sm text-gray-400 p-3">
-                            No users found.
-                          </p>
-                        )}
-                        {filteredUsers.map((user) => (
-                          <button
-                            key={user._id}
-                            type="button"
-                            onClick={() => addMember(user)}
-                            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 text-left"
-                          >
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-xs overflow-hidden">
-                              {user.profile ? (
-                                <img
-                                  src={user.profile}
-                                  alt={user.username}
-                                  className="w-full h-full object-cover rounded-full"
-                                />
-                              ) : (
-                                user.username.slice(0, 2).toUpperCase()
-                              )}
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold text-gray-900">
-                                {user.username}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {user.title || user.email}
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                  {!loadingUsers && allUsers.length === 0 && (
+                    <p className="text-sm text-gray-400 italic text-center py-8">
+                      No users found
+                    </p>
                   )}
                 </div>
               </div>
@@ -381,7 +363,7 @@ export default function CreateProject({ open, onClose, onSuccess }) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t flex items-center justify-between">
+        <div className="px-5 py-3 border-t flex items-center justify-between sticky bottom-0 bg-white z-10">
           <button
             type="button"
             onClick={onClose}
@@ -393,7 +375,7 @@ export default function CreateProject({ open, onClose, onSuccess }) {
             type="submit"
             className="px-6 py-2 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 cursor-pointer"
           >
-            Create
+            Create Project
           </button>
         </div>
       </form>

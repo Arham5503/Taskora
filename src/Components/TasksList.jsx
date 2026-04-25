@@ -57,10 +57,12 @@ const TaskList = ({ tasks, onCreateClick }) => {
       <div
         style={{
           padding: "1.5rem",
+          width: "100%",
           maxWidth: "42rem",
           borderRadius: "0.5rem",
           boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
           background: colors.cards,
+          boxSizing: "border-box",
         }}
       >
         {/* Header */}

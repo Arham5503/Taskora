@@ -7,10 +7,11 @@ import {
   Colors,
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
-
+import { useContext } from "react";
 ChartJS.register(ArcElement, Tooltip, Legend);
-
+import { AppSettingsContext } from "../Context/ThemeContext";
 function DonutChart() {
+  const { colors } = useContext(AppSettingsContext);
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -28,7 +29,28 @@ function DonutChart() {
   ];
 
   return (
-    <div className="flex-1">
+    <div
+      style={{
+        flex: "1 1 200px",
+        minWidth: "180px",
+        maxWidth: "340px",
+        width: "100%",
+      }}
+    >
+      <h1
+        style={{
+          fontSize: "clamp(1.25rem, 3vw, 1.5rem)",
+          fontWeight: 500,
+          color: colors.boldText,
+        }}
+      >
+        My Progress
+      </h1>
+      <p
+        style={{ color: "#737373", fontSize: "0.875rem", marginBottom: "1rem" }}
+      >
+        Your task completion rate
+      </p>
       <Doughnut
         ref={chartRef}
         data={{
