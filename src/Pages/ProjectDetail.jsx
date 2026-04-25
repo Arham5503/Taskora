@@ -428,16 +428,16 @@ export default function ProjectDetail() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
-                        {(member.username ||
-                          member.email ||
+                        {(member.user.username ||
+                          member.user.email ||
                           "M")[0].toUpperCase()}
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {member.username || "Unknown"}
+                          {member.user.username || "Unknown"}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {member.email}
+                          {member.user.email}
                         </div>
                       </div>
                     </div>

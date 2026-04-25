@@ -185,24 +185,91 @@ function Projects({ projectsData }) {
                   }}
                 >
                   <div style={{ display: "flex", marginLeft: "-0.375rem" }}>
-                    {[
-                      "alex-morgan.png",
-                      "david-kim.png",
-                      "jessica-chen.png",
-                    ].map((src, i) => (
-                      <img
-                        key={i}
-                        src={src}
-                        alt="team"
+                    {card.team && card.team.length > 0 ? (
+                      card.team.slice(0, 3).map((member, idx) => (
+                        <div
+                          key={member._id}
+                          style={{
+                            marginLeft: idx === 0 ? 0 : "-0.5rem",
+                            position: "relative",
+                          }}
+                        >
+                          {member.user?.profile &&
+                          member.user.profile.trim() !== "" ? (
+                            <img
+                              src={member.user.profile}
+                              alt={member.user.username}
+                              style={{
+                                width: "1.75rem",
+                                height: "1.75rem",
+                                borderRadius: "50%",
+                                border: "2px solid white",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: "1.75rem",
+                                height: "1.75rem",
+                                borderRadius: "50%",
+                                border: "2px solid white",
+                                backgroundColor: "#E5E7EB",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.75rem",
+                                fontWeight: 500,
+                                color: "#4B5563",
+                              }}
+                            >
+                              {(
+                                member.user?.username?.[0] || "?"
+                              ).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div
                         style={{
                           width: "1.75rem",
                           height: "1.75rem",
                           borderRadius: "50%",
                           border: "2px solid white",
-                          marginLeft: i === 0 ? 0 : "-0.5rem",
+                          backgroundColor: "#E5E7EB",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.75rem",
+                          fontWeight: 500,
+                          color: "#4B5563",
                         }}
-                      />
-                    ))}
+                      >
+                        ?
+                      </div>
+                    )}
+
+                    {card.team && card.team.length > 3 && (
+                      <div
+                        style={{
+                          width: "1.75rem",
+                          height: "1.75rem",
+                          borderRadius: "50%",
+                          border: "2px solid white",
+                          backgroundColor: "#D1D5DB",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.7rem",
+                          fontWeight: 500,
+                          color: "#374151",
+                          marginLeft: "-0.5rem",
+                        }}
+                      >
+                        +{card.team.length - 3}
+                      </div>
+                    )}
                   </div>
 
                   <div
@@ -215,7 +282,7 @@ function Projects({ projectsData }) {
                     }}
                   >
                     <FileText size="1rem" style={{ stroke: "#9CA3AF" }} />
-                    <span>0 tasks</span>
+                    <span>{card.totalTasks || 0} tasks</span>
                   </div>
                 </div>
               </div>

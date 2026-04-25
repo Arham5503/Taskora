@@ -27,7 +27,13 @@ function AreaCharts() {
   ];
 
   return (
-    <div className="flex-3">
+    <div
+      style={{
+        flex: "3 1 280px",
+        minWidth: 0,
+        width: "100%",
+      }}
+    >
       <h1
         style={{
           fontSize: "clamp(1.25rem, 3vw, 1.5rem)",
@@ -37,14 +43,16 @@ function AreaCharts() {
       >
         Project Analytics
       </h1>
-      <p className="text-[#737373] text-sm mb-4">
+      <p
+        style={{ color: "#737373", fontSize: "0.875rem", marginBottom: "1rem" }}
+      >
         Task completion and project progress over time
       </p>
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={totallTasks}>
           <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
-          <XAxis dataKey="name" />
-          <YAxis />
+          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+          <YAxis tick={{ fontSize: 12 }} width={30} />
           <Tooltip />
           <Area
             type="monotone"

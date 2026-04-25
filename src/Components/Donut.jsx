@@ -29,7 +29,14 @@ function DonutChart() {
   ];
 
   return (
-    <div className="flex-1">
+    <div
+      style={{
+        flex: "1 1 200px",
+        minWidth: "180px",
+        maxWidth: "340px",
+        width: "100%",
+      }}
+    >
       <h1
         style={{
           fontSize: "clamp(1.25rem, 3vw, 1.5rem)",
@@ -39,7 +46,11 @@ function DonutChart() {
       >
         My Progress
       </h1>
-      <p className="text-[#737373] text-sm mb-4">Your task completion rate</p>
+      <p
+        style={{ color: "#737373", fontSize: "0.875rem", marginBottom: "1rem" }}
+      >
+        Your task completion rate
+      </p>
       <Doughnut
         ref={chartRef}
         data={{

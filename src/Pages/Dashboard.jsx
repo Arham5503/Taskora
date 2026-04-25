@@ -43,8 +43,15 @@ function Dashboard() {
         <Analytics projects={projects} tasks={tasks} loading={loading} />
         {/* Projects */}
         <Projects projectsData={projects} onRefresh={fetchData} />
-        {/* Area Chart */}
-        <div className="flex">
+        {/* Area Chart + Donut */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "1.5rem",
+            alignItems: "flex-start",
+          }}
+        >
           <AreaCharts />
           <DonutChart />
         </div>
