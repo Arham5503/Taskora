@@ -61,6 +61,7 @@ export default function ProjectDetail() {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
+  const [inviteRole, setInviteRole] = useState("viewer");
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
   const [openTaskMenu, setOpenTaskMenu] = useState(null);
@@ -68,7 +69,6 @@ export default function ProjectDetail() {
   useEffect(() => {
     fetchProjectData();
   }, [projectId]);
-
   const fetchProjectData = async () => {
     try {
       const [projectData, tasksData, teamData] = await Promise.all([
@@ -87,9 +87,9 @@ export default function ProjectDetail() {
     }
   };
 
-  const handleGenerateInvite = async () => {
+  const handleGenerateInvite = async (roleToUse = inviteRole) => {
     try {
-      const response = await generateInviteLink(projectId);
+      const response = await generateInviteLink(projectId, roleToUse);
       setInviteLink(response.inviteUrl);
       setShowInviteModal(true);
     } catch {
@@ -125,7 +125,6 @@ export default function ProjectDetail() {
     }
     setOpenTaskMenu(null);
   };
-
   const handleDeleteTask = async (taskId) => {
     if (!confirm("Delete this task?")) return;
     try {
@@ -278,7 +277,7 @@ export default function ProjectDetail() {
             }}
           >
             {team.isOwner && (
-              <button onClick={handleGenerateInvite} style={outlineBtnStyle}>
+              <button onClick={() => handleGenerateInvite()} style={outlineBtnStyle}>
                 <Users size={14} /> Invite
               </button>
             )}
@@ -680,7 +679,7 @@ export default function ProjectDetail() {
                 Team Members
               </h3>
               {team.isOwner && (
-                <button onClick={handleGenerateInvite} style={primaryBtnStyle}>
+                <button onClick={() => handleGenerateInvite()} style={primaryBtnStyle}>
                   <Plus size={14} /> Invite
                 </button>
               )}
@@ -750,9 +749,47 @@ export default function ProjectDetail() {
           onClose={() => {
             setShowInviteModal(false);
             setInviteLink("");
+            setInviteRole("viewer");
           }}
           title="Invite Team Member"
         >
+          {/* Role Selector */}
+          <div style={{ marginBottom: "1rem" }}>
+            <label
+              style={{
+                fontSize: "0.875rem",
+                fontWeight: 500,
+                color: "#374151",
+                display: "block",
+                marginBottom: "0.375rem",
+              }}
+            >
+              Invite as
+            </label>
+            <select
+              value={inviteRole}
+              onChange={(e) => {
+                const nextRole = e.target.value;
+                setInviteRole(nextRole);
+                handleGenerateInvite(nextRole);
+              }}
+              style={{
+                width: "100%",
+                padding: "0.5rem 0.75rem",
+                border: "1px solid #D1D5DB",
+                borderRadius: "0.5rem",
+                fontSize: "0.875rem",
+                color: "#111827",
+                backgroundColor: "#fff",
+                outline: "none",
+                cursor: "pointer",
+              }}
+            >
+              <option value="viewer">Viewer</option>
+              <option value="contributor">Contributor</option>
+              <option value="manager">Manager</option>
+            </select>
+          </div>
           <p
             style={{
               fontSize: "0.875rem",

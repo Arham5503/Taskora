@@ -333,14 +333,12 @@ function ProjectsPage() {
               filteredProjects.map((project) => (
                 <div
                   key={project._id}
-                  onClick={() => handleViewDetails(project._id)}
                   style={{
                     backgroundColor: "#fff",
                     borderRadius: "0.625rem",
                     border: "1px solid #E5E7EB",
                     padding: "1.25rem",
                     position: "relative",
-                    cursor: "pointer",
                     boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
                     transition: "box-shadow 0.15s, transform 0.15s",
                     display: "flex",
