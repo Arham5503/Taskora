@@ -108,67 +108,6 @@ function Header({ onCreateClick, onMenuClick }) {
               flexShrink: 0,
             }}
           >
-            {/* Search input — hidden on mobile, shown inline on desktop */}
-            <div
-              className="search-desktop"
-              style={{
-                position: "relative",
-                width: "clamp(8rem, 18vw, 18rem)",
-              }}
-            >
-              <Search
-                stroke={isDark ? "#ffffff" : "#9CA3AF"}
-                size={15}
-                style={{
-                  position: "absolute",
-                  left: "0.6rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  pointerEvents: "none",
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Search…"
-                style={{
-                  width: "100%",
-                  paddingLeft: "2rem",
-                  paddingRight: "0.75rem",
-                  paddingTop: "0.4rem",
-                  paddingBottom: "0.4rem",
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: "9999px",
-                  color: colors.text,
-                  backgroundColor: "transparent",
-                  fontSize: "0.875rem",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
-
-            {/* Search icon — mobile only */}
-            <button
-              onClick={() => setSearchOpen((v) => !v)}
-              aria-label="Search"
-              className="search-mobile-btn"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "0.375rem",
-                display: "none",
-                alignItems: "center",
-                borderRadius: "0.375rem",
-              }}
-            >
-              {searchOpen ? (
-                <X size={20} stroke={iconColor} strokeWidth={2} />
-              ) : (
-                <Search size={20} stroke={iconColor} strokeWidth={2} />
-              )}
-            </button>
-
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -236,48 +175,6 @@ function Header({ onCreateClick, onMenuClick }) {
             </Link>
           </div>
         </nav>
-
-        {/* Mobile search bar — slides down when searchOpen */}
-        <div
-          style={{
-            overflow: "hidden",
-            maxHeight: searchOpen ? "4rem" : "0",
-            transition: "max-height 0.2s ease",
-          }}
-          className="search-mobile-bar"
-        >
-          <div style={{ position: "relative", paddingBottom: "0.75rem" }}>
-            <Search
-              stroke={isDark ? "#ffffff" : "#9CA3AF"}
-              size={15}
-              style={{
-                position: "absolute",
-                left: "0.6rem",
-                top: "0.55rem",
-                pointerEvents: "none",
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Search…"
-              autoFocus={searchOpen}
-              style={{
-                width: "100%",
-                paddingLeft: "2rem",
-                paddingRight: "0.75rem",
-                paddingTop: "0.45rem",
-                paddingBottom: "0.45rem",
-                border: `1px solid ${colors.border}`,
-                borderRadius: "9999px",
-                color: colors.text,
-                backgroundColor: "transparent",
-                fontSize: "0.875rem",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-        </div>
       </header>
 
       <style>{`

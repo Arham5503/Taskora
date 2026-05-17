@@ -193,14 +193,14 @@ export const removeTeamMember = async (projectId, memberId) => {
 // ==================== INVITE APIs ====================
 
 // Generate invite link
-export const generateInviteLink = async (projectId, options = {}) => {
+export const generateInviteLink = async (projectId, role = "viewer") => {
   try {
     const response = await fetch(`${BASE_URL}/project/${projectId}/invite`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(options),
+      body: JSON.stringify({role}),
       credentials: "include",
     });
     if (!response.ok) {
