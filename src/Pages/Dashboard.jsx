@@ -48,8 +48,10 @@ function Dashboard() {
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gap: "1.5rem",
-            alignItems: "flex-start",
+            gap: "1rem",
+            alignItems: "stretch",
+            marginTop: "1rem",
+            marginBottom: "1rem",
           }}
         >
           <AreaCharts />

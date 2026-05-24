@@ -60,8 +60,9 @@ const TaskList = ({ tasks, onCreateClick }) => {
           width: "100%",
           maxWidth: "42rem",
           borderRadius: "0.5rem",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+          boxShadow: "0 14px 40px rgba(0,0,0,0.12)",
           background: colors.cards,
+          border: `1px solid ${colors.border}`,
           boxSizing: "border-box",
         }}
       >
@@ -107,7 +108,8 @@ const TaskList = ({ tasks, onCreateClick }) => {
           style={{
             display: "flex",
             gap: "0.25rem",
-            backgroundColor: "#F3F4F6",
+            backgroundColor: colors.muted,
+            border: `1px solid ${colors.border}`,
             borderRadius: "0.375rem",
             padding: "0.25rem",
             marginBottom: "1rem",
@@ -125,8 +127,8 @@ const TaskList = ({ tasks, onCreateClick }) => {
                 borderRadius: "0.25rem",
                 border: "none",
                 cursor: "pointer",
-                background: activeTab === tab ? "#fff" : "transparent",
-                color: activeTab === tab ? "#111" : "#6B7280",
+                background: activeTab === tab ? colors.cards : "transparent",
+                color: activeTab === tab ? colors.boldText : colors.text,
                 boxShadow:
                   activeTab === tab ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
                 transition: "all 0.15s",
@@ -145,7 +147,7 @@ const TaskList = ({ tasks, onCreateClick }) => {
                 style={{
                   fontSize: "0.9375rem",
                   fontWeight: 500,
-                  color: "#374151",
+                  color: colors.boldText,
                   marginBottom: "0.5rem",
                 }}
               >
@@ -157,7 +159,8 @@ const TaskList = ({ tasks, onCreateClick }) => {
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "0.75rem",
-                  border: "1px solid #E5E7EB",
+                  border: `1px solid ${colors.border}`,
+                  background: colors.muted,
                   borderRadius: "0.5rem",
                   gap: "0.5rem",
                   flexWrap: "wrap",
@@ -184,7 +187,7 @@ const TaskList = ({ tasks, onCreateClick }) => {
                     <p
                       style={{
                         fontSize: "0.9375rem",
-                        color: "#1F2937",
+                        color: colors.boldText,
                         margin: 0,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -193,7 +196,7 @@ const TaskList = ({ tasks, onCreateClick }) => {
                     >
                       {task.title}
                     </p>
-                    <span style={{ fontSize: "0.75rem", color: "#9CA3AF" }}>
+                    <span style={{ fontSize: "0.75rem", color: colors.text }}>
                       {dateFinder(task.dueDate)}
                     </span>
                   </div>
@@ -231,7 +234,7 @@ const TaskList = ({ tasks, onCreateClick }) => {
                   )}
                   <button
                     style={{
-                      color: "#9CA3AF",
+                      color: colors.text,
                       fontSize: "1.25rem",
                       background: "none",
                       border: "none",
@@ -251,13 +254,13 @@ const TaskList = ({ tasks, onCreateClick }) => {
           onClick={onCreateClick}
           style={{
             width: "100%",
-            border: "1px solid #D1D5DB",
+            border: `1px solid ${colors.border}`,
             borderRadius: "0.5rem",
             padding: "0.5rem 0",
             marginTop: "0.75rem",
-            color: "#374151",
+            color: colors.boldText,
             cursor: "pointer",
-            background: "none",
+            background: colors.muted,
             fontSize: "0.9375rem",
           }}
         >

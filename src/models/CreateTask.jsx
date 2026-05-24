@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Calendar } from "lucide-react";
+import { X, Calendar, Paperclip } from "lucide-react";
 import { createTask, getProjects, getProjectTeam } from "../api/ApiBuilder";
 import { toast } from "react-toastify";
 import { useAuth } from "../Context/AuthContext";
@@ -24,6 +24,7 @@ export default function CreateTask({
     assignees: [],
     project: projectId || "",
     category: "General",
+    attachments: [],
   });
 
   useEffect(() => {
@@ -44,7 +45,10 @@ export default function CreateTask({
     }
   }, [formData.project]);
 
-  const getMemberUserId = (member) => member.user?._id || member.user || member._id;
+  const getMemberUser = (member) =>
+    typeof member.user === "object" && member.user !== null ? member.user : member;
+
+  const getMemberUserId = (member) => getMemberUser(member)?._id || member.user || member._id;
 
   const canCreateSelectedProjectTask =
     canCreateTask ?? projectAccess?.canCreate ?? !formData.project;
@@ -107,7 +111,7 @@ export default function CreateTask({
 
     setLoading(true);
     try {
-      await createTask({
+      const taskPayload = {
         title: formData.title,
         description: formData.description,
         priority: formData.priority.toLowerCase(),
@@ -115,7 +119,24 @@ export default function CreateTask({
         project: formData.project,
         assignees: formData.assignees,
         category: formData.category,
-      });
+      };
+
+      if (formData.attachments.length > 0) {
+        const multipartData = new FormData();
+        Object.entries(taskPayload).forEach(([key, value]) => {
+          multipartData.append(
+            key,
+            Array.isArray(value) ? JSON.stringify(value) : value ?? "",
+          );
+        });
+        formData.attachments.forEach((file) => {
+          multipartData.append("attachments", file);
+        });
+
+        await createTask(multipartData);
+      } else {
+        await createTask(taskPayload);
+      }
       toast.success("Task created successfully!");
       setFormData({
         title: "",
@@ -125,6 +146,7 @@ export default function CreateTask({
         assignees: [],
         project: projectId || "",
         category: "General",
+        attachments: [],
       });
       onClose();
       if (onSuccess) onSuccess();
@@ -141,6 +163,13 @@ export default function CreateTask({
       assignees: prev.assignees.includes(memberId)
         ? prev.assignees.filter((id) => id !== memberId)
         : [...prev.assignees, memberId],
+    }));
+  };
+
+  const handleAttachmentChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      attachments: Array.from(e.target.files || []),
     }));
   };
 
@@ -315,6 +344,47 @@ export default function CreateTask({
             />
           </div>
 
+          {/* Attachments */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Attachments
+            </label>
+            <label className="flex items-center gap-3 px-4 py-3 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+              <Paperclip size={18} className="text-gray-500" />
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-gray-800">
+                  Add files
+                </div>
+                <div className="text-xs text-gray-500 truncate">
+                  {formData.attachments.length > 0
+                    ? `${formData.attachments.length} file${
+                        formData.attachments.length > 1 ? "s" : ""
+                      } selected`
+                    : "Upload task attachments"}
+                </div>
+              </div>
+              <input
+                type="file"
+                multiple
+                onChange={handleAttachmentChange}
+                className="hidden"
+              />
+            </label>
+            {formData.attachments.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {formData.attachments.map((file) => (
+                  <div
+                    key={`${file.name}-${file.size}`}
+                    className="text-xs text-gray-600 truncate"
+                    title={file.name}
+                  >
+                    {file.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Assignees */}
           {formData.project && teamMembers.length > 0 && (
             <div>
@@ -322,28 +392,37 @@ export default function CreateTask({
                 Assign To
               </label>
               <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
-                {teamMembers.map((member) => (
-                  <label
-                    key={member._id}
-                    className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.assignees.includes(member._id)}
-                      onChange={() => handleAssigneeToggle(member._id)}
-                      className="w-4 h-4 rounded"
-                    />
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                      {(member.username || member.email || "U")[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {member.username || "Unknown"}
+                {teamMembers.map((member) => {
+                  const memberUser = getMemberUser(member);
+                  const memberId = getMemberUserId(member);
+                  const memberName =
+                    memberUser?.username || memberUser?.email || "Unknown";
+
+                  return (
+                    <label
+                      key={member._id || memberId}
+                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.assignees.includes(memberId)}
+                        onChange={() => handleAssigneeToggle(memberId)}
+                        className="w-4 h-4 rounded"
+                      />
+                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                        {memberName[0].toUpperCase()}
                       </div>
-                      <div className="text-xs text-gray-500">{member.email}</div>
-                    </div>
-                  </label>
-                ))}
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {memberName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {memberUser?.email}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}

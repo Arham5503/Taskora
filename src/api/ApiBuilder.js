@@ -253,12 +253,15 @@ export const joinViaInvite = async (inviteCode) => {
 // Create task
 export const createTask = async (taskData) => {
   try {
+    const isFormData = taskData instanceof FormData;
     const response = await fetch(`${BASE_URL}/task`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(taskData),
+      headers: isFormData
+        ? undefined
+        : {
+            "Content-Type": "application/json",
+          },
+      body: isFormData ? taskData : JSON.stringify(taskData),
       credentials: "include",
     });
     if (!response.ok) {

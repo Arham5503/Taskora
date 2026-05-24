@@ -95,7 +95,6 @@ function Sidebar({ isOpen, onClose }) {
           activeTab={activeTab}
           colors={colors}
           handleLogout={handleLogout}
-          showLabels={true}
           labelClass="sidebar-label"
         />
       </aside>
@@ -159,7 +158,6 @@ function Sidebar({ isOpen, onClose }) {
             activeTab={activeTab}
             colors={colors}
             handleLogout={handleLogout}
-            showLabels={true}
           />
         </aside>
       </>
@@ -192,7 +190,6 @@ function SidebarContent({
   activeTab,
   colors,
   handleLogout,
-  showLabels,
   labelClass,
 }) {
   return (
@@ -230,7 +227,7 @@ function SidebarContent({
                 borderRadius: "0.5rem",
                 textDecoration: "none",
                 fontSize: "0.9375rem",
-                backgroundColor: activeTab === key ? "#DBEAFE" : "transparent",
+                backgroundColor: activeTab === key ? colors.primarySoft : "transparent",
                 color: activeTab === key ? colors.primary : colors.text,
                 transition: "background 0.15s",
                 whiteSpace: "nowrap",

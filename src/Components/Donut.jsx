@@ -4,7 +4,6 @@ import {
   ArcElement,
   Tooltip,
   Legend,
-  Colors,
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { useContext } from "react";
@@ -15,10 +14,10 @@ function DonutChart() {
   const chartRef = useRef(null);
 
   useEffect(() => {
-    // Cleanup function to destroy chart when component unmounts
+    const chart = chartRef.current;
     return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
+      if (chart) {
+        chart.destroy();
       }
     };
   }, []);
@@ -35,6 +34,11 @@ function DonutChart() {
         minWidth: "180px",
         maxWidth: "340px",
         width: "100%",
+        background: colors.cards,
+        border: `1px solid ${colors.border}`,
+        borderRadius: "0.75rem",
+        padding: "1.25rem",
+        boxShadow: "0 14px 40px rgba(0,0,0,0.12)",
       }}
     >
       <h1
@@ -47,7 +51,7 @@ function DonutChart() {
         My Progress
       </h1>
       <p
-        style={{ color: "#737373", fontSize: "0.875rem", marginBottom: "1rem" }}
+        style={{ color: colors.text, fontSize: "0.875rem", marginBottom: "1rem" }}
       >
         Your task completion rate
       </p>
@@ -59,8 +63,20 @@ function DonutChart() {
             {
               data: totallTasks.map((task) => task.tasks),
               backgroundColor: totallTasks.map((task) => task.color),
+              borderColor: colors.cards,
+              borderWidth: 3,
             },
           ],
+        }}
+        options={{
+          plugins: {
+            legend: {
+              labels: {
+                color: colors.text,
+                boxWidth: 12,
+              },
+            },
+          },
         }}
       />
     </div>

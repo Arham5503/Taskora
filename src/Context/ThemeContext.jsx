@@ -1,41 +1,53 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useEffect, useState, useContext } from "react";
 
 export const AppSettingsContext = createContext();
 
 export const AppSettingsProvider = ({ children }) => {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("taskore-theme") || "light",
+  );
 
   const light = {
-    text: "#6B7280",
+    text: "#475569",
     primary: "#2563EB",
-    // primary: "#5B21B6",
-    background: "white",
-    sidebar: "white",
-    border: "#E5E5E5",
-    boldText: "#000000",
-    cards: "white",
-    header: "white",
+    primarySoft: "#EFF6FF",
+    accent: "#0F766E",
+    background: "#F8FAFC",
+    sidebar: "#FFFFFF",
+    border: "#DDE5EF",
+    boldText: "#0F172A",
+    cards: "#FFFFFF",
+    header: "rgba(255,255,255,0.88)",
+    muted: "#F1F5F9",
   };
 
   const dark = {
-    // primary: "#5B21B6",
-    primary: "#2563EB",
-    colorTest: "#818CF8",
-    boldText: "white",
-    text: "white",
+    primary: "#60A5FA",
+    primarySoft: "rgba(96,165,250,0.14)",
+    accent: "#2DD4BF",
+    colorTest: "#60A5FA",
+    boldText: "#F8FAFC",
+    text: "#D8E2F0",
     plusProgress: "#4ADE80",
     subProgress: "text-red-400 bg-red-900/30",
     inprogress: "bg-yellow-900/30 text-yellow-300",
     completed: "bg-green-900/30 text-green-300",
     planning: "bg-blue-900/30 text-blue-300",
     heading: "text-gray-100",
-    background: "#121212",
-    sidebar: "#1E1E1E",
-    header: "#2D2D2D",
+    background: "#0B1220",
+    sidebar: "#0F172A",
+    header: "rgba(15,23,42,0.92)",
     headings: "text-gray-100",
-    cards: "#2D2D2D",
-    border: "#2D2D2D",
+    cards: "#162033",
+    border: "#2B3A55",
+    muted: "#101A2B",
   };
+
+  useEffect(() => {
+    localStorage.setItem("taskore-theme", theme);
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+  }, [theme]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));

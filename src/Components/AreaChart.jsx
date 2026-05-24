@@ -32,6 +32,11 @@ function AreaCharts() {
         flex: "3 1 280px",
         minWidth: 0,
         width: "100%",
+        background: colors.cards,
+        border: `1px solid ${colors.border}`,
+        borderRadius: "0.75rem",
+        padding: "1.25rem",
+        boxShadow: "0 14px 40px rgba(0,0,0,0.12)",
       }}
     >
       <h1
@@ -44,27 +49,42 @@ function AreaCharts() {
         Project Analytics
       </h1>
       <p
-        style={{ color: "#737373", fontSize: "0.875rem", marginBottom: "1rem" }}
+        style={{
+          color: colors.text,
+          fontSize: "0.875rem",
+          marginBottom: "1rem",
+        }}
       >
         Task completion and project progress over time
       </p>
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={totallTasks}>
-          <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
-          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-          <YAxis tick={{ fontSize: 12 }} width={30} />
-          <Tooltip />
+          <CartesianGrid
+            stroke={colors.border}
+            strokeDasharray="3 3"
+            opacity={0.7}
+          />
+          <XAxis dataKey="name" tick={{ fontSize: 12, fill: colors.text }} />
+          <YAxis tick={{ fontSize: 12, fill: colors.text }} width={30} />
+          <Tooltip
+            contentStyle={{
+              background: colors.cards,
+              border: `1px solid ${colors.border}`,
+              borderRadius: "0.5rem",
+              color: colors.boldText,
+            }}
+          />
           <Area
             type="monotone"
             dataKey="tasks"
-            stroke="#8884d8"
-            fill="#E7E6F7"
+            stroke={colors.primary}
+            fill="rgba(96, 165, 250, 0.24)"
           />
           <Area
             type="monotone"
             dataKey="completed"
-            stroke="#82CA9D"
-            fill="#D3E0E5"
+            stroke={colors.accent}
+            fill="rgba(45, 212, 191, 0.18)"
           />
         </AreaChart>
       </ResponsiveContainer>

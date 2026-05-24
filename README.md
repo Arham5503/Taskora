@@ -57,7 +57,7 @@ Taskore/
 │   ├── routes/
 │   │   └── AppRoutes.jsx     # Route definitions
 │   ├── UI/
-│   │   └── OTPInput.jsx      # Reusable OTP input field
+│   │   └── OTPinput.jsx      # Reusable OTP input field (filename case-sensitive)
 │   ├── App.jsx               # App wrapper with providers
 │   ├── App.css               # Global layout styles
 │   ├── index.css             # Tailwind CSS entry
@@ -398,6 +398,17 @@ Provides: `user`, `setUser`, `loading`
 - On app mount: calls `GET /api/me` to restore session from cookie
 - If `/api/me` returns 401: attempts token refresh via `GET /api/refresh`, then retries
 - `loading` flag prevents rendering protected routes before auth check completes
+
+---
+
+## Additional detected features
+
+- `AppSettingsProvider` / `src/Context/ThemeContext.jsx`: theme is persisted to `localStorage` under the key `taskore-theme`, injected via `document.documentElement.dataset.theme`, and can be toggled with `toggleTheme()`.
+- `createTask()` accepts `FormData` (see `src/api/ApiBuilder.js`) — tasks support file uploads/attachments when a `FormData` object is provided.
+- `PricingModal` and pricing assets (`src/assets/ChoosePlan.png`, `src/assets/ChoosePro.png`) indicate built-in pricing/plan UI used on the landing/marketing screens.
+- `HomeScreen.jsx` exists in `src/Components/` (used for landing/authenticated home variants).
+
+If you want, I can automatically add short examples for the above (code snippets showing theme toggle or FormData usage) or update any filenames to match exactly. Tell me which you'd like me to add next.
 - Wraps the entire app via `AuthProvider` in `main.jsx`
 
 ### ThemeContext — `src/Context/ThemeContext.jsx`

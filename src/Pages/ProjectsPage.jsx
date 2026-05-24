@@ -1,5 +1,5 @@
 import CreateProject from "../models/CreateProject";
-import { useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -27,6 +27,7 @@ import {
   generateInviteLink,
 } from "../api/ApiBuilder";
 import { toast } from "react-toastify";
+import { AppSettingsContext } from "../Context/ThemeContext";
 
 const STATUS_STYLES = {
   planning: { bg: "#EFF6FF", text: "#1D4ED8" },
@@ -50,6 +51,7 @@ function formatStatus(status) {
 }
 
 function ProjectsPage() {
+  const { colors } = useContext(AppSettingsContext);
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState("grid");
   const [activeActionMenu, setActiveActionMenu] = useState(null);
@@ -167,8 +169,8 @@ function ProjectsPage() {
       {/* Toolbar */}
       <div
         style={{
-          backgroundColor: "#F9FAFB",
-          borderBottom: "1px solid #E5E7EB",
+          backgroundColor: colors.cards,
+          borderBottom: `1px solid ${colors.border}`,
           padding: "0.75rem 1rem",
         }}
       >
@@ -209,7 +211,7 @@ function ProjectsPage() {
                   left: "0.75rem",
                   top: "50%",
                   transform: "translateY(-50%)",
-                  color: "#9CA3AF",
+                  color: colors.text,
                   pointerEvents: "none",
                 }}
               />
@@ -224,12 +226,13 @@ function ProjectsPage() {
                   paddingRight: "0.75rem",
                   paddingTop: "0.5rem",
                   paddingBottom: "0.5rem",
-                  border: "1px solid #D1D5DB",
+                  border: `1px solid ${colors.border}`,
                   borderRadius: "0.5rem",
                   fontSize: "0.875rem",
                   outline: "none",
                   boxSizing: "border-box",
-                  backgroundColor: "#fff",
+                  backgroundColor: colors.muted,
+                  color: colors.boldText,
                 }}
               />
             </div>
@@ -239,8 +242,9 @@ function ProjectsPage() {
                 alignItems: "center",
                 gap: "0.375rem",
                 padding: "0.5rem 0.875rem",
-                backgroundColor: "#fff",
-                border: "1px solid #D1D5DB",
+                backgroundColor: colors.muted,
+                border: `1px solid ${colors.border}`,
+                color: colors.boldText,
                 borderRadius: "0.5rem",
                 fontSize: "0.875rem",
                 fontWeight: 500,
@@ -256,9 +260,9 @@ function ProjectsPage() {
           {/* View Toggle */}
           <div style={{ display: "flex", gap: "0.25rem" }}>
             {[
-              { mode: "grid", Icon: Grid3x3 },
-              { mode: "list", Icon: List },
-            ].map(({ mode, Icon }) => (
+              { mode: "grid", icon: <Grid3x3 size={14} /> },
+              { mode: "list", icon: <List size={14} /> },
+            ].map(({ mode, icon }) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
@@ -273,15 +277,15 @@ function ProjectsPage() {
                   cursor: "pointer",
                   border:
                     viewMode === mode
-                      ? "1px solid #D1D5DB"
+                      ? `1px solid ${colors.border}`
                       : "1px solid transparent",
-                  backgroundColor: viewMode === mode ? "#fff" : "transparent",
+                  backgroundColor: viewMode === mode ? colors.muted : "transparent",
                   boxShadow:
                     viewMode === mode ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
-                  color: "#374151",
+                  color: viewMode === mode ? colors.boldText : colors.text,
                 }}
               >
-                <Icon size={14} />
+                {icon}
                 <span style={{ textTransform: "capitalize" }}>{mode}</span>
               </button>
             ))}
@@ -293,7 +297,7 @@ function ProjectsPage() {
       <div
         style={{
           minHeight: "100vh",
-          backgroundColor: "#F9FAFB",
+          backgroundColor: colors.background,
           padding: "1rem",
         }}
       >
@@ -311,8 +315,8 @@ function ProjectsPage() {
                 width: "3rem",
                 height: "3rem",
                 borderRadius: "50%",
-                border: "3px solid #E5E7EB",
-                borderTopColor: "#111827",
+                border: `3px solid ${colors.border}`,
+                borderTopColor: colors.primary,
                 animation: "spin 0.7s linear infinite",
               }}
             />
@@ -334,9 +338,9 @@ function ProjectsPage() {
                 <div
                   key={project._id}
                   style={{
-                    backgroundColor: "#fff",
+                    backgroundColor: colors.cards,
                     borderRadius: "0.625rem",
-                    border: "1px solid #E5E7EB",
+                    border: `1px solid ${colors.border}`,
                     padding: "1.25rem",
                     position: "relative",
                     boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
@@ -388,7 +392,7 @@ function ProjectsPage() {
                           style={{
                             fontSize: "1rem",
                             fontWeight: 600,
-                            color: "#111827",
+                            color: colors.boldText,
                             margin: 0,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -411,7 +415,7 @@ function ProjectsPage() {
                       <p
                         style={{
                           fontSize: "0.8125rem",
-                          color: "#6B7280",
+                          color: colors.text,
                           margin: 0,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -445,7 +449,7 @@ function ProjectsPage() {
                       display: "flex",
                       alignItems: "center",
                       gap: "0.5rem",
-                      color: "#6B7280",
+                      color: colors.text,
                       fontSize: "0.8125rem",
                     }}
                   >
@@ -463,7 +467,7 @@ function ProjectsPage() {
                         cursor: "pointer",
                         padding: "0.25rem",
                         borderRadius: "0.375rem",
-                        color: "#6B7280",
+                        color: colors.text,
                         display: "flex",
                         alignItems: "center",
                       }}
@@ -479,7 +483,7 @@ function ProjectsPage() {
                         display: "flex",
                         justifyContent: "space-between",
                         fontSize: "0.8125rem",
-                        color: "#6B7280",
+                        color: colors.text,
                         marginBottom: "0.375rem",
                       }}
                     >
@@ -490,7 +494,7 @@ function ProjectsPage() {
                       style={{
                         height: "0.375rem",
                         borderRadius: "9999px",
-                        backgroundColor: "#E5E7EB",
+                        backgroundColor: colors.border,
                         overflow: "hidden",
                       }}
                     >
@@ -498,7 +502,7 @@ function ProjectsPage() {
                         style={{
                           height: "100%",
                           borderRadius: "9999px",
-                          backgroundColor: "#111827",
+                          background: `linear-gradient(90deg, ${colors.primary}, ${colors.accent})`,
                           width: `${project.progress || 0}%`,
                           transition: "width 0.3s ease",
                         }}
@@ -518,7 +522,7 @@ function ProjectsPage() {
                           height: "1.75rem",
                           borderRadius: "50%",
                           backgroundColor: "#3B82F6",
-                          border: "2px solid #fff",
+                          border: `2px solid ${colors.cards}`,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -537,7 +541,7 @@ function ProjectsPage() {
                       <span
                         style={{
                           fontSize: "0.75rem",
-                          color: "#6B7280",
+                          color: colors.text,
                           marginLeft: "0.5rem",
                         }}
                       >
@@ -578,7 +582,7 @@ function ProjectsPage() {
                         <div
                           style={{
                             fontSize: "0.75rem",
-                            color: "#9CA3AF",
+                            color: colors.text,
                             marginBottom: "0.125rem",
                           }}
                         >
@@ -588,7 +592,7 @@ function ProjectsPage() {
                           style={{
                             fontSize: "0.875rem",
                             fontWeight: 600,
-                            color: "#111827",
+                            color: colors.boldText,
                           }}
                         >
                           {value}
@@ -599,7 +603,7 @@ function ProjectsPage() {
                       <div
                         style={{
                           fontSize: "0.75rem",
-                          color: "#9CA3AF",
+                          color: colors.text,
                           marginBottom: "0.25rem",
                         }}
                       >
@@ -633,10 +637,10 @@ function ProjectsPage() {
                         position: "absolute",
                         right: "1rem",
                         top: "4.5rem",
-                        backgroundColor: "#fff",
+                        backgroundColor: colors.cards,
                         borderRadius: "0.5rem",
                         boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                        border: "1px solid #E5E7EB",
+                        border: `1px solid ${colors.border}`,
                         width: "13rem",
                         zIndex: 20,
                         overflow: "hidden",
@@ -647,8 +651,8 @@ function ProjectsPage() {
                           padding: "0.5rem 0.75rem",
                           fontSize: "0.75rem",
                           fontWeight: 600,
-                          color: "#111827",
-                          borderBottom: "1px solid #F3F4F6",
+                          color: colors.boldText,
+                          borderBottom: `1px solid ${colors.border}`,
                         }}
                       >
                         Project Actions
@@ -656,27 +660,27 @@ function ProjectsPage() {
                       {[
                         {
                           label: "View Details",
-                          Icon: FileText,
+                          icon: <FileText size={14} />,
                           onClick: () => handleViewDetails(project._id),
                         },
                         {
                           label: "Invite Member",
-                          Icon: Users,
+                          icon: <Users size={14} />,
                           onClick: () => handleGenerateInvite(project._id),
                         },
                         {
                           label: "Put on Hold",
-                          Icon: PauseCircle,
+                          icon: <PauseCircle size={14} />,
                           onClick: () =>
                             handleStatusChange(project._id, "on_hold"),
                         },
-                      ].map(({ label, Icon, onClick }) => (
+                      ].map(({ label, icon, onClick }) => (
                         <button
                           key={label}
                           onClick={onClick}
                           style={menuBtnStyle}
                         >
-                          <Icon size={14} /> {label}
+                          {icon} {label}
                         </button>
                       ))}
 
@@ -701,10 +705,10 @@ function ProjectsPage() {
                               position: "absolute",
                               left: "100%",
                               top: 0,
-                              backgroundColor: "#fff",
+                              backgroundColor: colors.cards,
                               borderRadius: "0.5rem",
                               boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-                              border: "1px solid #E5E7EB",
+                              border: `1px solid ${colors.border}`,
                               width: "9rem",
                               zIndex: 30,
                             }}
@@ -725,8 +729,8 @@ function ProjectsPage() {
                                   ...menuBtnStyle,
                                   color:
                                     project.status === s
-                                      ? "#2563EB"
-                                      : "#374151",
+                                      ? colors.primary
+                                      : colors.boldText,
                                   fontWeight: project.status === s ? 600 : 400,
                                 }}
                               >
@@ -739,7 +743,7 @@ function ProjectsPage() {
 
                       <div
                         style={{
-                          borderTop: "1px solid #F3F4F6",
+                          borderTop: `1px solid ${colors.border}`,
                           marginTop: "0.25rem",
                         }}
                       >
@@ -767,7 +771,7 @@ function ProjectsPage() {
                   gridColumn: "1 / -1",
                   textAlign: "center",
                   padding: "5rem 0",
-                  color: "#9CA3AF",
+                  color: colors.text,
                   fontSize: "0.9375rem",
                 }}
               >
@@ -792,7 +796,7 @@ function ProjectsPage() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6B7280",
+              color: colors.text,
               marginBottom: "1rem",
             }}
           >
@@ -806,9 +810,10 @@ function ProjectsPage() {
               style={{
                 flex: 1,
                 padding: "0.5rem 0.75rem",
-                border: "1px solid #D1D5DB",
+                border: `1px solid ${colors.border}`,
                 borderRadius: "0.5rem",
-                backgroundColor: "#F9FAFB",
+                backgroundColor: colors.muted,
+                color: colors.boldText,
                 fontSize: "0.875rem",
                 outline: "none",
                 minWidth: 0,
@@ -821,7 +826,7 @@ function ProjectsPage() {
                 alignItems: "center",
                 gap: "0.375rem",
                 padding: "0.5rem 0.875rem",
-                backgroundColor: "#111827",
+                background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`,
                 color: "#fff",
                 borderRadius: "0.5rem",
                 border: "none",
@@ -837,7 +842,7 @@ function ProjectsPage() {
           <p
             style={{
               fontSize: "0.75rem",
-              color: "#9CA3AF",
+              color: colors.text,
               marginTop: "0.75rem",
             }}
           >
@@ -856,7 +861,7 @@ function ProjectsPage() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6B7280",
+              color: colors.text,
               marginBottom: "1.25rem",
             }}
           >
@@ -918,7 +923,7 @@ const menuBtnStyle = {
   background: "transparent",
   border: "none",
   fontSize: "0.875rem",
-  color: "#374151",
+  color: "var(--app-heading)",
   cursor: "pointer",
   textAlign: "left",
   transition: "background 0.1s",
@@ -926,12 +931,12 @@ const menuBtnStyle = {
 
 const cancelBtnStyle = {
   padding: "0.5rem 1rem",
-  border: "1px solid #D1D5DB",
+  border: "1px solid var(--app-border)",
   borderRadius: "0.5rem",
-  background: "#fff",
+  background: "var(--app-card)",
   cursor: "pointer",
   fontSize: "0.875rem",
-  color: "#374151",
+  color: "var(--app-heading)",
 };
 
 function Modal({ children, onClose, title, maxWidth = "28rem" }) {
@@ -950,7 +955,7 @@ function Modal({ children, onClose, title, maxWidth = "28rem" }) {
     >
       <div
         style={{
-          backgroundColor: "#fff",
+          backgroundColor: "var(--app-card)",
           borderRadius: "0.75rem",
           boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
           width: "100%",
@@ -975,7 +980,7 @@ function Modal({ children, onClose, title, maxWidth = "28rem" }) {
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "#9CA3AF",
+              color: "var(--app-text)",
               padding: "0.25rem",
             }}
           >

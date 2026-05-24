@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Calendar,
   Paperclip,
@@ -18,12 +18,14 @@ import {
 import { getMyTasks, updateTaskStatus, deleteTask } from "../api/ApiBuilder";
 import CreateTask from "../models/CreateTask";
 import { toast } from "react-toastify";
+import { AppSettingsContext } from "../Context/ThemeContext";
 
 const TasksPage = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
+  const { colors } = useContext(AppSettingsContext);
 
   useEffect(() => {
     fetchTasks();
@@ -45,7 +47,7 @@ const TasksPage = () => {
       await updateTaskStatus(taskId, newStatus);
       toast.success("Task status updated");
       fetchTasks();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update task");
     }
     setActiveMenu(null);
@@ -57,7 +59,7 @@ const TasksPage = () => {
       await deleteTask(taskId);
       toast.success("Task deleted");
       fetchTasks();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete task");
     }
     setActiveMenu(null);
@@ -84,6 +86,11 @@ const TasksPage = () => {
     low: "bg-green-100 text-green-700",
   };
 
+  const getAttachmentCount = (attachments) => {
+    if (Array.isArray(attachments)) return attachments.length;
+    return Number(attachments) || 0;
+  };
+
   const getNextStatus = (currentStatus) => {
     const statusFlow = {
       todo: "in_progress",
@@ -95,6 +102,7 @@ const TasksPage = () => {
 
   const TaskCard = ({ task }) => {
     const isMenuOpen = activeMenu === task._id;
+    const attachmentCount = getAttachmentCount(task.attachments);
 
     return (
       <div className="bg-white rounded-lg p-4 mb-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative">
@@ -142,10 +150,10 @@ const TasksPage = () => {
                 </span>
               </div>
             )}
-            {task.attachments > 0 && (
+            {attachmentCount > 0 && (
               <div className="flex items-center gap-1">
                 <Paperclip size={14} />
-                <span className="text-xs">{task.attachments}</span>
+                <span className="text-xs">{attachmentCount}</span>
               </div>
             )}
             {task.comments > 0 && (
@@ -229,8 +237,11 @@ const TasksPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-b-2"
+          style={{ borderBottomColor: colors.primary }}
+        ></div>
       </div>
     );
   }
@@ -238,9 +249,9 @@ const TasksPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
+      <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-4 rounded-lg shadow-sm">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto pb-1 xl:pb-0">
             <button className="flex items-center gap-2 text-blue-600 font-medium px-3 py-2 rounded hover:bg-blue-50">
               <Grid3x3 size={18} />
               <span>Board</span>
@@ -255,7 +266,7 @@ const TasksPage = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 xl:pb-0">
             <button className="flex items-center gap-2 text-gray-700 font-medium px-3 py-2 rounded hover:bg-gray-100">
               <Filter size={18} />
               <span>Filter</span>
@@ -280,7 +291,7 @@ const TasksPage = () => {
       </div>
 
       {/* Kanban Board */}
-      <div className="p-6">
+      <div className="py-4 sm:py-6">
         {tasks.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-gray-400 mb-4">
@@ -299,7 +310,7 @@ const TasksPage = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
             {columns.map((column) => (
               <div key={column.id} className="bg-gray-100 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">

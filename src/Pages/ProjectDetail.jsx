@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -27,6 +27,7 @@ import {
 import CreateTask from "../models/CreateTask";
 import { toast } from "react-toastify";
 import { useAuth } from "../Context/AuthContext";
+import { AppSettingsContext } from "../Context/ThemeContext";
 
 const TASK_STATUS_STYLES = {
   todo: { bg: "#F3F4F6", text: "#374151" },
@@ -56,6 +57,7 @@ export default function ProjectDetail() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { colors } = useContext(AppSettingsContext);
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [team, setTeam] = useState({ owner: null, team: [], isOwner: false });
@@ -235,12 +237,12 @@ export default function ProjectDetail() {
     : "N/A";
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#F9FAFB" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: colors.background, color: colors.text }}>
       {/* Page header */}
       <div
         style={{
-          backgroundColor: "#fff",
-          borderBottom: "1px solid #E5E7EB",
+          backgroundColor: colors.cards,
+          borderBottom: `1px solid ${colors.border}`,
           padding: "1rem 1.25rem",
         }}
       >
@@ -275,13 +277,13 @@ export default function ProjectDetail() {
               style={{
                 fontSize: "clamp(1.125rem, 3vw, 1.5rem)",
                 fontWeight: 700,
-                color: "#111827",
+                color: colors.boldText,
                 margin: "0 0 0.25rem",
               }}
             >
               {project.title}
             </h1>
-            <p style={{ fontSize: "0.875rem", color: "#6B7280", margin: 0 }}>
+            <p style={{ fontSize: "0.875rem", color: colors.text, margin: 0 }}>
               {project.description}
             </p>
           </div>
@@ -314,7 +316,7 @@ export default function ProjectDetail() {
             flexWrap: "wrap",
             gap: "1rem",
             fontSize: "0.8125rem",
-            color: "#6B7280",
+            color: colors.text,
             alignItems: "center",
           }}
         >
@@ -349,7 +351,7 @@ export default function ProjectDetail() {
               style={{
                 flex: 1,
                 height: "0.375rem",
-                backgroundColor: "#E5E7EB",
+              backgroundColor: colors.border,
                 borderRadius: "9999px",
                 overflow: "hidden",
                 maxWidth: "12rem",
@@ -358,7 +360,7 @@ export default function ProjectDetail() {
               <div
                 style={{
                   height: "100%",
-                  backgroundColor: "#22C55E",
+                  background: `linear-gradient(90deg, ${colors.primary}, ${colors.accent})`,
                   width: `${project.progress || 0}%`,
                   borderRadius: "9999px",
                   transition: "width 0.3s",
@@ -373,8 +375,8 @@ export default function ProjectDetail() {
       {/* Tabs */}
       <div
         style={{
-          backgroundColor: "#fff",
-          borderBottom: "1px solid #E5E7EB",
+          backgroundColor: colors.cards,
+          borderBottom: `1px solid ${colors.border}`,
           padding: "0 1.25rem",
         }}
       >
@@ -391,10 +393,10 @@ export default function ProjectDetail() {
                 fontSize: "0.9375rem",
                 fontWeight: 500,
                 textTransform: "capitalize",
-                color: activeTab === tab ? "#111827" : "#6B7280",
+                color: activeTab === tab ? colors.boldText : colors.text,
                 borderBottom:
                   activeTab === tab
-                    ? "2px solid #111827"
+                    ? `2px solid ${colors.primary}`
                     : "2px solid transparent",
                 transition: "color 0.15s, border-color 0.15s",
               }}
@@ -440,7 +442,7 @@ export default function ProjectDetail() {
                     style={{
                       fontSize: "0.875rem",
                       fontWeight: 600,
-                      color: "#111827",
+                      color: "var(--app-heading)",
                       margin: 0,
                     }}
                   >
@@ -448,8 +450,8 @@ export default function ProjectDetail() {
                   </h3>
                   <span
                     style={{
-                      backgroundColor: "#E5E7EB",
-                      color: "#374151",
+                      backgroundColor: "var(--app-card-muted)",
+                      color: "var(--app-heading)",
                       fontSize: "0.7rem",
                       padding: "0.125rem 0.5rem",
                       borderRadius: "9999px",
@@ -472,10 +474,10 @@ export default function ProjectDetail() {
                     <div
                       key={task._id}
                       style={{
-                        backgroundColor: "#fff",
+                        backgroundColor: "var(--app-card)",
                         borderRadius: "0.5rem",
                         padding: "0.875rem",
-                        border: "1px solid #E5E7EB",
+                        border: "1px solid var(--app-border)",
                         boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
                         position: "relative",
                       }}
@@ -492,7 +494,7 @@ export default function ProjectDetail() {
                           style={{
                             fontSize: "0.875rem",
                             fontWeight: 600,
-                            color: "#111827",
+                            color: "var(--app-heading)",
                             margin: 0,
                             flex: 1,
                             marginRight: "0.5rem",
@@ -513,7 +515,7 @@ export default function ProjectDetail() {
                               border: "none",
                               cursor: "pointer",
                               padding: "0.125rem",
-                              color: "#9CA3AF",
+                              color: "var(--app-text)",
                               borderRadius: "0.25rem",
                             }}
                           >
@@ -525,10 +527,10 @@ export default function ProjectDetail() {
                                 position: "absolute",
                                 right: 0,
                                 top: "1.5rem",
-                                backgroundColor: "#fff",
+                                backgroundColor: "var(--app-card)",
                                 borderRadius: "0.5rem",
                                 boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-                                border: "1px solid #E5E7EB",
+                                border: "1px solid var(--app-border)",
                                 width: "9rem",
                                 zIndex: 20,
                               }}
@@ -564,7 +566,7 @@ export default function ProjectDetail() {
                         <p
                           style={{
                             fontSize: "0.75rem",
-                            color: "#6B7280",
+                            color: "var(--app-text)",
                             margin: "0 0 0.5rem",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -603,8 +605,8 @@ export default function ProjectDetail() {
                               fontSize: "0.7rem",
                               padding: "0.125rem 0.5rem",
                               borderRadius: "9999px",
-                              backgroundColor: "#DBEAFE",
-                              color: "#1D4ED8",
+                              backgroundColor: "var(--app-primary-soft)",
+                              color: "var(--app-primary)",
                             }}
                           >
                             {task.category}
@@ -619,7 +621,7 @@ export default function ProjectDetail() {
                             alignItems: "center",
                             gap: "0.25rem",
                             fontSize: "0.7rem",
-                            color: "#9CA3AF",
+                            color: "var(--app-text)",
                           }}
                         >
                           <Clock size={11} />
@@ -637,7 +639,7 @@ export default function ProjectDetail() {
                                 height: "1.5rem",
                                 borderRadius: "50%",
                                 backgroundColor: "#3B82F6",
-                                border: "2px solid #fff",
+                                border: "2px solid var(--app-card)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -676,9 +678,9 @@ export default function ProjectDetail() {
         {activeTab === "team" && (
           <div
             style={{
-              backgroundColor: "#fff",
+              backgroundColor: "var(--app-card)",
               borderRadius: "0.625rem",
-              border: "1px solid #E5E7EB",
+              border: "1px solid var(--app-border)",
               overflow: "hidden",
               maxWidth: "40rem",
             }}
@@ -777,7 +779,7 @@ export default function ProjectDetail() {
               style={{
                 fontSize: "0.875rem",
                 fontWeight: 500,
-                color: "#374151",
+                color: "var(--app-heading)",
                 display: "block",
                 marginBottom: "0.375rem",
               }}
@@ -794,11 +796,11 @@ export default function ProjectDetail() {
               style={{
                 width: "100%",
                 padding: "0.5rem 0.75rem",
-                border: "1px solid #D1D5DB",
+                border: "1px solid var(--app-border)",
                 borderRadius: "0.5rem",
                 fontSize: "0.875rem",
-                color: "#111827",
-                backgroundColor: "#fff",
+                color: "var(--app-heading)",
+                backgroundColor: "var(--app-card)",
                 outline: "none",
                 cursor: "pointer",
               }}
@@ -811,7 +813,7 @@ export default function ProjectDetail() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6B7280",
+              color: "var(--app-text)",
               marginBottom: "1rem",
             }}
           >
@@ -825,9 +827,9 @@ export default function ProjectDetail() {
               style={{
                 flex: 1,
                 padding: "0.5rem 0.75rem",
-                border: "1px solid #D1D5DB",
+                border: "1px solid var(--app-border)",
                 borderRadius: "0.5rem",
-                backgroundColor: "#F9FAFB",
+                backgroundColor: "var(--app-card-muted)",
                 fontSize: "0.875rem",
                 outline: "none",
                 minWidth: 0,
@@ -841,7 +843,7 @@ export default function ProjectDetail() {
           <p
             style={{
               fontSize: "0.75rem",
-              color: "#9CA3AF",
+              color: "var(--app-text)",
               marginTop: "0.625rem",
             }}
           >
@@ -861,7 +863,7 @@ const primaryBtnStyle = {
   alignItems: "center",
   gap: "0.375rem",
   padding: "0.45rem 0.875rem",
-  backgroundColor: "#111827",
+  background: "linear-gradient(135deg, var(--app-primary), var(--app-accent))",
   color: "#fff",
   border: "none",
   borderRadius: "0.5rem",
@@ -875,9 +877,9 @@ const outlineBtnStyle = {
   alignItems: "center",
   gap: "0.375rem",
   padding: "0.45rem 0.875rem",
-  backgroundColor: "#fff",
-  color: "#374151",
-  border: "1px solid #D1D5DB",
+  backgroundColor: "var(--app-card)",
+  color: "var(--app-heading)",
+  border: "1px solid var(--app-border)",
   borderRadius: "0.5rem",
   cursor: "pointer",
   fontSize: "0.8125rem",
@@ -892,7 +894,7 @@ const taskMenuBtnStyle = {
   background: "none",
   border: "none",
   fontSize: "0.8125rem",
-  color: "#374151",
+  color: "var(--app-heading)",
   cursor: "pointer",
   textAlign: "left",
 };
@@ -905,7 +907,7 @@ function MemberRow({ name, email, avatarColor, badge, action }) {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0.875rem 1rem",
-        borderBottom: "1px solid #F3F4F6",
+        borderBottom: "1px solid var(--app-border)",
         gap: "0.75rem",
         flexWrap: "wrap",
       }}
@@ -937,14 +939,18 @@ function MemberRow({ name, email, avatarColor, badge, action }) {
         </div>
         <div style={{ minWidth: 0 }}>
           <div
-            style={{ fontSize: "0.9375rem", fontWeight: 500, color: "#111827" }}
+            style={{
+              fontSize: "0.9375rem",
+              fontWeight: 500,
+              color: "var(--app-heading)",
+            }}
           >
             {name}
           </div>
           <div
             style={{
               fontSize: "0.8125rem",
-              color: "#6B7280",
+              color: "var(--app-text)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -996,7 +1002,7 @@ function ModalShell({ children, onClose, title }) {
     >
       <div
         style={{
-          backgroundColor: "#fff",
+          backgroundColor: "var(--app-card)",
           borderRadius: "0.75rem",
           boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
           width: "100%",
@@ -1021,7 +1027,7 @@ function ModalShell({ children, onClose, title }) {
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "#9CA3AF",
+              color: "var(--app-text)",
             }}
           >
             <X size={18} />

@@ -14,12 +14,14 @@ function AppContent() {
 
   return (
     <div
+      className="app-shell"
       style={{
         display: "flex",
         height: "100svh",
         overflow: "hidden",
         width: "100%",
         position: "relative",
+        backgroundColor: colors.background,
       }}
     >
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -53,6 +55,7 @@ function AppContent() {
           onMenuClick={() => setSidebarOpen((v) => !v)}
         />
         <div
+          className="app-page-scroll"
           style={{
             flex: 1,
             padding: "1.25rem",
