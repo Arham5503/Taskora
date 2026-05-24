@@ -26,6 +26,7 @@ import {
 } from "../api/ApiBuilder";
 import CreateTask from "../models/CreateTask";
 import { toast } from "react-toastify";
+import { useAuth } from "../Context/AuthContext";
 
 const TASK_STATUS_STYLES = {
   todo: { bg: "#F3F4F6", text: "#374151" },
@@ -54,6 +55,7 @@ function formatStatus(status) {
 export default function ProjectDetail() {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [team, setTeam] = useState({ owner: null, team: [], isOwner: false });
@@ -148,6 +150,22 @@ export default function ProjectDetail() {
     todo: "in_progress",
     in_progress: "in_review",
     in_review: "done",
+  };
+
+  const currentMember = team.team?.find((member) => {
+    const memberUserId = member.user?._id || member.user || member._id;
+    return memberUserId === user?._id;
+  });
+  const currentRole = currentMember?.role?.toLowerCase();
+  const canCreateTask =
+    team.isOwner || currentRole === "owner" || currentRole === "manager";
+
+  const openCreateTask = () => {
+    if (!canCreateTask) {
+      toast.error("Only project owners and managers can add tasks");
+      return;
+    }
+    setShowCreateTask(true);
   };
 
   if (loading) {
@@ -281,12 +299,11 @@ export default function ProjectDetail() {
                 <Users size={14} /> Invite
               </button>
             )}
-            <button
-              onClick={() => setShowCreateTask(true)}
-              style={primaryBtnStyle}
-            >
-              <Plus size={14} /> Add Task
-            </button>
+            {canCreateTask && (
+              <button onClick={openCreateTask} style={primaryBtnStyle}>
+                <Plus size={14} /> Add Task
+              </button>
+            )}
           </div>
         </div>
 
@@ -740,6 +757,7 @@ export default function ProjectDetail() {
         open={showCreateTask}
         onClose={() => setShowCreateTask(false)}
         projectId={projectId}
+        canCreateTask={canCreateTask}
         onSuccess={fetchProjectData}
       />
 

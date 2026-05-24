@@ -2,10 +2,19 @@ import { useState, useEffect } from "react";
 import { X, Calendar } from "lucide-react";
 import { createTask, getProjects, getProjectTeam } from "../api/ApiBuilder";
 import { toast } from "react-toastify";
+import { useAuth } from "../Context/AuthContext";
 
-export default function CreateTask({ open, onClose, projectId, onSuccess }) {
+export default function CreateTask({
+  open,
+  onClose,
+  projectId,
+  canCreateTask,
+  onSuccess,
+}) {
+  const { user } = useAuth();
   const [projects, setProjects] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
+  const [projectAccess, setProjectAccess] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -19,6 +28,7 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
 
   useEffect(() => {
     if (open) {
+      if (!user?._id) return;
       fetchProjects();
       if (projectId) {
         setFormData((prev) => ({ ...prev, project: projectId }));
@@ -29,14 +39,41 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
 
   useEffect(() => {
     if (formData.project) {
+      setProjectAccess(null);
       fetchTeamMembers(formData.project);
     }
   }, [formData.project]);
 
+  const getMemberUserId = (member) => member.user?._id || member.user || member._id;
+
+  const canCreateSelectedProjectTask =
+    canCreateTask ?? projectAccess?.canCreate ?? !formData.project;
+
+  const userCanCreateTask = (teamData) => {
+    const currentMember = teamData.team?.find(
+      (member) => getMemberUserId(member) === user?._id,
+    );
+    const currentRole = currentMember?.role?.toLowerCase();
+
+    return teamData.isOwner || currentRole === "owner" || currentRole === "manager";
+  };
+
   const fetchProjects = async () => {
     try {
       const data = await getProjects();
-      setProjects(data);
+      const projectsWithAccess = await Promise.all(
+        data.map(async (project) => {
+          try {
+            const teamData = await getProjectTeam(project._id);
+            return userCanCreateTask(teamData) ? project : null;
+          } catch (error) {
+            console.error("Failed to check project access:", error);
+            return null;
+          }
+        }),
+      );
+
+      setProjects(projectsWithAccess.filter(Boolean));
     } catch (error) {
       console.error("Failed to fetch projects:", error);
     }
@@ -46,8 +83,12 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
     try {
       const data = await getProjectTeam(projId);
       setTeamMembers(data.team || []);
+      setProjectAccess({
+        canCreate: userCanCreateTask(data),
+      });
     } catch (error) {
       console.error("Failed to fetch team:", error);
+      setProjectAccess(null);
     }
   };
 
@@ -56,6 +97,11 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
 
     if (!formData.title || !formData.project) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!canCreateSelectedProjectTask) {
+      toast.error("Only project owners and managers can add tasks");
       return;
     }
 
@@ -82,7 +128,7 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
       });
       onClose();
       if (onSuccess) onSuccess();
-    } catch (error) {
+    } catch {
       toast.error("Failed to create task");
     } finally {
       setLoading(false);
@@ -132,7 +178,11 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
               <select
                 value={formData.project}
                 onChange={(e) =>
-                  setFormData({ ...formData, project: e.target.value, assignees: [] })
+                  setFormData({
+                    ...formData,
+                    project: e.target.value,
+                    assignees: [],
+                  })
                 }
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                 required
@@ -143,6 +193,11 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
                     {project.title}
                   </option>
                 ))}
+                {projects.length === 0 && (
+                  <option value="" disabled>
+                    No projects available
+                  </option>
+                )}
               </select>
             </div>
           )}
@@ -304,7 +359,7 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !canCreateSelectedProjectTask}
               className="px-6 py-2.5 text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors font-medium disabled:opacity-50"
             >
               {loading ? "Creating..." : "Create Task"}

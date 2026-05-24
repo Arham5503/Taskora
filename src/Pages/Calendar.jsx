@@ -1,50 +1,49 @@
-import React, { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Filter, Users } from "lucide-react";
+import { getMyTasks } from "../api/ApiBuilder";
+import { toast } from "react-toastify";
 
 const TaskCalendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 11, 1));
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState("Month");
   const [showAllProjects, setShowAllProjects] = useState(true);
   const [showAllAssignees, setShowAllAssignees] = useState(true);
 
-  const events = [
-    {
-      id: 1,
-      title: "Design System Review",
-      date: 10,
-      color: "bg-purple-200 text-purple-700",
-    },
-    {
-      id: 2,
-      title: "Client Meeting",
-      date: 12,
-      color: "bg-yellow-200 text-yellow-700",
-    },
-    {
-      id: 3,
-      title: "Mobile App Sprint Planning",
-      date: 15,
-      color: "bg-cyan-200 text-cyan-700",
-    },
-    {
-      id: 4,
-      title: "Website Launch",
-      date: 19,
-      color: "bg-green-200 text-green-700",
-    },
-    {
-      id: 5,
-      title: "Team Building",
-      date: 24,
-      color: "bg-pink-200 text-pink-700",
-    },
-    {
-      id: 6,
-      title: "Team Building",
-      date: 26,
-      color: "bg-pink-200 text-pink-700",
-    },
-  ];
+  useEffect(() => {
+    fetchTasks();
+
+    const refreshInterval = setInterval(fetchTasks, 30000);
+    const handleVisibilityChange = () => {
+      if (!document.hidden) fetchTasks();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(refreshInterval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      const data = await getMyTasks();
+      setTasks(data);
+    } catch (error) {
+      console.error("Failed to fetch calendar tasks:", error);
+      toast.error("Failed to load calendar tasks");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const taskColors = {
+    high: "bg-red-100 text-red-700",
+    medium: "bg-blue-100 text-blue-700",
+    low: "bg-green-100 text-green-700",
+  };
 
   const monthNames = [
     "January",
@@ -74,6 +73,29 @@ const TaskCalendar = () => {
 
   const { firstDay, daysInMonth } = getDaysInMonth(currentDate);
 
+  const calendarTasks = useMemo(
+    () =>
+      tasks
+        .filter((task) => task.dueDate)
+        .map((task) => {
+          const dueDate = new Date(task.dueDate);
+
+          return {
+            ...task,
+            dueYear: dueDate.getFullYear(),
+            dueMonth: dueDate.getMonth(),
+            dueDay: dueDate.getDate(),
+          };
+        }),
+    [tasks],
+  );
+
+  const visibleMonthTasks = calendarTasks.filter(
+    (task) =>
+      task.dueYear === currentDate.getFullYear() &&
+      task.dueMonth === currentDate.getMonth(),
+  );
+
   const previousMonth = () => {
     setCurrentDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
@@ -91,7 +113,7 @@ const TaskCalendar = () => {
   };
 
   const getEventsForDate = (day) => {
-    return events.filter((event) => event.date === day);
+    return visibleMonthTasks.filter((task) => task.dueDay === day);
   };
 
   const renderCalendarDays = () => {
@@ -114,14 +136,22 @@ const TaskCalendar = () => {
                 {dayNumber}
               </div>
               <div className="space-y-1">
-                {dayEvents.map((event) => (
+                {dayEvents.slice(0, 3).map((event) => (
                   <div
-                    key={event.id}
-                    className={`${event.color} px-2 py-1 rounded text-xs truncate`}
+                    key={event._id}
+                    title={`${event.title} (${event.project?.title || "No project"})`}
+                    className={`${
+                      taskColors[event.priority] || taskColors.medium
+                    } px-2 py-1 rounded text-xs truncate`}
                   >
                     {event.title}
                   </div>
                 ))}
+                {dayEvents.length > 3 && (
+                  <div className="px-2 py-1 text-xs text-gray-500">
+                    +{dayEvents.length - 3} more
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -233,7 +263,7 @@ const TaskCalendar = () => {
             </button>
           </div>
           <span className="text-xs sm:text-sm text-blue-600 font-medium">
-            {events.length} events
+            {loading ? "Loading..." : `${visibleMonthTasks.length} tasks`}
           </span>
         </div>
 
