@@ -383,3 +383,103 @@ export const deleteTask = async (taskId) => {
     throw error;
   }
 };
+
+// ==================== NOTIFICATION APIs ====================
+
+export const getNotifications = async ({
+  type = "all",
+  read,
+  page = 1,
+  limit = 30,
+} = {}) => {
+  try {
+    const params = new URLSearchParams({
+      type,
+      page: String(page),
+      limit: String(limit),
+    });
+
+    if (read !== undefined) {
+      params.set("read", String(read));
+    }
+
+    const response = await fetch(`${BASE_URL}/notifications?${params}`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch notifications");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (getNotifications):", error);
+    throw error;
+  }
+};
+
+export const getUnreadNotificationCount = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/notifications/unread-count`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch unread notification count");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (getUnreadNotificationCount):", error);
+    throw error;
+  }
+};
+
+export const markNotificationRead = async (notificationId) => {
+  try {
+    const response = await fetch(
+      `${BASE_URL}/notifications/${notificationId}/read`,
+      {
+        method: "PATCH",
+        credentials: "include",
+      },
+    );
+    if (!response.ok) {
+      throw new Error("Failed to mark notification as read");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (markNotificationRead):", error);
+    throw error;
+  }
+};
+
+export const markAllNotificationsRead = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/notifications/read-all`, {
+      method: "PATCH",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to mark notifications as read");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (markAllNotificationsRead):", error);
+    throw error;
+  }
+};
+
+export const deleteNotification = async (notificationId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/notifications/${notificationId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to delete notification");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (deleteNotification):", error);
+    throw error;
+  }
+};

@@ -18,6 +18,7 @@ A full-featured project and task management web application built with React and
 - [Context & State Management](#context--state-management)
 - [UI Components](#ui-components)
 - [Theming](#theming)
+- [Recent Updates](#recent-updates)
 - [Features](#features)
 
 ---
@@ -239,8 +240,13 @@ Personal kanban board across all projects:
 ### Notifications — `src/Pages/Notifications.jsx`
 
 - Tab filters: All, Tasks, Mentions, Projects, System
-- Notifications grouped by date (TODAY, YESTERDAY)
-- Currently displays static/mock notification data
+- Notifications grouped by date: Today, Yesterday, Earlier
+- Fetches real backend notifications from `getNotifications()`
+- Shows unread status, actor avatar, title, description, and created time
+- Supports marking a single notification as read on click
+- Supports "Mark all as read"
+- Supports deleting notifications from the row action menu
+- Navigates to related task/project context when notification metadata is available
 
 ---
 
@@ -310,6 +316,16 @@ All functions are in [src/api/ApiBuilder.js](src/api/ApiBuilder.js). The base UR
 | `updateTaskStatus(taskId, status)` | PATCH | `/task/:taskId/status` | Change task status |
 | `deleteTask(taskId)` | DELETE | `/task/:taskId` | Delete a task |
 
+### Notifications
+
+| Function | Method | Endpoint | Description |
+|----------|--------|----------|-------------|
+| `getNotifications({ type, read, page, limit })` | GET | `/notifications` | Get paginated notifications with optional type/read filters |
+| `getUnreadNotificationCount()` | GET | `/notifications/unread-count` | Get unread notification badge count |
+| `markNotificationRead(notificationId)` | PATCH | `/notifications/:notificationId/read` | Mark one notification as read |
+| `markAllNotificationsRead()` | PATCH | `/notifications/read-all` | Mark every notification as read |
+| `deleteNotification(notificationId)` | DELETE | `/notifications/:notificationId` | Delete one notification |
+
 ### Users
 
 | Function | Method | Endpoint | Description |
@@ -328,7 +344,7 @@ All components live in [src/Components/](src/Components/).
 |-----------|-------------|
 | `Layout.jsx` | Root wrapper: renders `Sidebar` + `Header` + `<Outlet>` for nested routes |
 | `Sidebar.jsx` | Left nav with links to Dashboard, Projects, Tasks, Calendar, Notifications |
-| `Header.jsx` | Top bar: page title, global search, theme toggle, create button, notifications icon, avatar |
+| `Header.jsx` | Top bar: page title, global search, theme toggle, create button, notifications icon with unread badge, avatar |
 
 ### Dashboard Components
 
@@ -472,6 +488,18 @@ The app supports **light** and **dark** modes managed by `ThemeContext`. All the
 
 ---
 
+## Recent Updates
+
+- **Real backend notification inbox**: `Notifications.jsx` now loads notifications from the backend instead of hardcoded mock data.
+- **Notification tabs**: All, Tasks, Mentions, Projects, and System tabs map to backend notification types: `all`, `task`, `mention`, `project`, and `system`.
+- **Unread handling**: notification rows show a blue unread dot, mark themselves read when opened, and support marking all notifications as read.
+- **Notification deletion**: each row has an action menu with a delete option wired to the backend.
+- **Notification routing**: task/project notifications navigate to `/tasks` or `/project/:projectId` when related metadata exists.
+- **Header unread badge**: `Header.jsx` fetches unread notification count on mount, refreshes every 30 seconds, and updates after notification read/delete actions.
+- **Assigned-only My Tasks behavior**: the dashboard task list is intended to show the logged-in user's own assigned tasks, so project owners do not see every assignee's tasks in their personal task list.
+
+---
+
 ## Features
 
 | Feature | Status |
@@ -489,5 +517,7 @@ The app supports **light** and **dark** modes managed by `ThemeContext`. All the
 | Profile avatar upload (Cloudinary) | Complete |
 | Responsive design (mobile / tablet / desktop) | Complete |
 | Calendar view | Partial (static data) |
-| Notifications inbox | Partial (static data) |
+| Notifications inbox | Complete |
+| Header unread notification badge | Complete |
+| Notification read/delete actions | Complete |
 | Google OAuth login | Not implemented |

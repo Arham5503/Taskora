@@ -6,9 +6,10 @@ import CreateProject from "../models/CreateProject";
 import CreateTask from "../models/CreateTask";
 import { useOutletContext } from "react-router-dom";
 import Analytics from "../Components/Analytics";
-import { getProjects, getMyTasks } from "../api/ApiBuilder";
+import { getProjects, getMyTasks, updateTaskStatus } from "../api/ApiBuilder";
 import AreaCharts from "../Components/AreaChart";
 import DonutChart from "../Components/Donut";
+import { toast } from "react-toastify";
 
 function Dashboard() {
   const { showCreateModel, setShowCreateModel } = useOutletContext();
@@ -36,6 +37,26 @@ function Dashboard() {
     fetchData();
   }, []);
 
+  const handleCompleteTask = async (taskId) => {
+    const previousTasks = tasks;
+
+    setTasks((currentTasks) =>
+      currentTasks.map((task) =>
+        task._id === taskId
+          ? { ...task, status: "done", completed: true }
+          : task,
+      ),
+    );
+
+    try {
+      await updateTaskStatus(taskId, "done");
+    } catch (error) {
+      console.error("Failed to complete task:", error);
+      setTasks(previousTasks);
+      toast.error("Failed to complete task");
+    }
+  };
+
   return (
     <>
       <main>
@@ -54,11 +75,15 @@ function Dashboard() {
             marginBottom: "1rem",
           }}
         >
-          <AreaCharts />
-          <DonutChart />
+          <AreaCharts projects={projects} loading={loading} />
+          <DonutChart tasks={tasks} loading={loading} />
         </div>
         {/* Tasks */}
-        <TaskList tasks={tasks} onCreateClick={() => setIsOpen(true)} />
+        <TaskList
+          tasks={tasks}
+          onCreateClick={() => setIsOpen(true)}
+          onCompleteTask={handleCompleteTask}
+        />
       </main>
       <CreateProject
         open={showCreateModel}

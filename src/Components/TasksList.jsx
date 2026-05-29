@@ -15,8 +15,9 @@ const dateFinder = (date) =>
     year: "numeric",
   });
 
-const TaskList = ({ tasks, onCreateClick }) => {
+const TaskList = ({ tasks, onCreateClick, onCompleteTask }) => {
   const { colors } = useApp();
+  const [updatingTaskId, setUpdatingTaskId] = useState(null);
 
   const categorizedTasks = (tasks) => {
     const today = new Date();
@@ -51,6 +52,19 @@ const TaskList = ({ tasks, onCreateClick }) => {
   };
 
   const tabs = ["Today", "Tomorrow", "Upcoming"];
+
+  const isTaskCompleted = (task) => task.completed || task.status === "done";
+
+  const handleCompleteTask = async (task) => {
+    if (isTaskCompleted(task) || updatingTaskId === task._id) return;
+
+    try {
+      setUpdatingTaskId(task._id);
+      await onCompleteTask?.(task._id);
+    } finally {
+      setUpdatingTaskId(null);
+    }
+  };
 
   return (
     <section style={{ padding: "1.25rem 0" }}>
@@ -175,8 +189,10 @@ const TaskList = ({ tasks, onCreateClick }) => {
                   }}
                 >
                   <input
-                    type="checkbox"
-                    readOnly
+                    type="radio"
+                    checked={isTaskCompleted(task)}
+                    disabled={updatingTaskId === task._id}
+                    onChange={() => handleCompleteTask(task)}
                     style={{
                       width: "1.125rem",
                       height: "1.125rem",
@@ -189,6 +205,10 @@ const TaskList = ({ tasks, onCreateClick }) => {
                         fontSize: "0.9375rem",
                         color: colors.boldText,
                         margin: 0,
+                        textDecoration: isTaskCompleted(task)
+                          ? "line-through"
+                          : "none",
+                        opacity: isTaskCompleted(task) ? 0.65 : 1,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -221,7 +241,7 @@ const TaskList = ({ tasks, onCreateClick }) => {
                   >
                     {task.priority}
                   </span>
-                  {task.completed && (
+                  {isTaskCompleted(task) && (
                     <span
                       style={{
                         fontSize: "0.75rem",
