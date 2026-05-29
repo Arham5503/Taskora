@@ -24,10 +24,10 @@ import {
   getProjects,
   updateProjectStatus,
   deleteProject,
-  generateInviteLink,
 } from "../api/ApiBuilder";
 import { toast } from "react-toastify";
 import { AppSettingsContext } from "../Context/ThemeContext";
+import InviteModel from "../models/InviteModel";
 
 const STATUS_STYLES = {
   planning: { bg: "#EFF6FF", text: "#1D4ED8" },
@@ -57,8 +57,6 @@ function ProjectsPage() {
   const [activeActionMenu, setActiveActionMenu] = useState(null);
   const [showStatusMenu, setShowStatusMenu] = useState(null);
   const [showInviteModal, setShowInviteModal] = useState(null);
-  const [inviteLink, setInviteLink] = useState("");
-  const [linkCopied, setLinkCopied] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const { showCreateModel, setShowCreateModel } = useOutletContext();
   const [projects, setProjects] = useState([]);
@@ -137,24 +135,6 @@ function ProjectsPage() {
     }
     setShowDeleteConfirm(null);
     setActiveActionMenu(null);
-  };
-
-  const handleGenerateInvite = async (projectId) => {
-    try {
-      const response = await generateInviteLink(projectId);
-      setInviteLink(response.inviteUrl);
-      setShowInviteModal(projectId);
-    } catch {
-      toast.error("Failed to generate invite link");
-    }
-    setActiveActionMenu(null);
-  };
-
-  const copyInviteLink = () => {
-    navigator.clipboard.writeText(inviteLink);
-    setLinkCopied(true);
-    toast.success("Copied!");
-    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   const filteredProjects = projects.filter(
@@ -279,7 +259,8 @@ function ProjectsPage() {
                     viewMode === mode
                       ? `1px solid ${colors.border}`
                       : "1px solid transparent",
-                  backgroundColor: viewMode === mode ? colors.muted : "transparent",
+                  backgroundColor:
+                    viewMode === mode ? colors.muted : "transparent",
                   boxShadow:
                     viewMode === mode ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
                   color: viewMode === mode ? colors.boldText : colors.text,
@@ -643,7 +624,6 @@ function ProjectsPage() {
                         border: `1px solid ${colors.border}`,
                         width: "13rem",
                         zIndex: 20,
-                        overflow: "hidden",
                       }}
                     >
                       <div
@@ -666,7 +646,7 @@ function ProjectsPage() {
                         {
                           label: "Invite Member",
                           icon: <Users size={14} />,
-                          onClick: () => handleGenerateInvite(project._id),
+                          onClick: () => setShowInviteModal(project._id),
                         },
                         {
                           label: "Put on Hold",
@@ -703,7 +683,7 @@ function ProjectsPage() {
                           <div
                             style={{
                               position: "absolute",
-                              left: "100%",
+                              right: "100%",
                               top: 0,
                               backgroundColor: colors.cards,
                               borderRadius: "0.5rem",
@@ -718,7 +698,6 @@ function ProjectsPage() {
                               "in_progress",
                               "completed",
                               "on_hold",
-                              "archived",
                             ].map((s) => (
                               <button
                                 key={s}
@@ -786,69 +765,10 @@ function ProjectsPage() {
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <Modal
-          onClose={() => {
-            setShowInviteModal(null);
-            setInviteLink("");
-          }}
-          title="Invite Team Member"
-        >
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: colors.text,
-              marginBottom: "1rem",
-            }}
-          >
-            Share this link with your team member to invite them to the project.
-          </p>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <input
-              type="text"
-              value={inviteLink}
-              readOnly
-              style={{
-                flex: 1,
-                padding: "0.5rem 0.75rem",
-                border: `1px solid ${colors.border}`,
-                borderRadius: "0.5rem",
-                backgroundColor: colors.muted,
-                color: colors.boldText,
-                fontSize: "0.875rem",
-                outline: "none",
-                minWidth: 0,
-              }}
-            />
-            <button
-              onClick={copyInviteLink}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.375rem",
-                padding: "0.5rem 0.875rem",
-                background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`,
-                color: "#fff",
-                borderRadius: "0.5rem",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "0.875rem",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {linkCopied ? <Check size={14} /> : <Copy size={14} />}
-              {linkCopied ? "Copied!" : "Copy"}
-            </button>
-          </div>
-          <p
-            style={{
-              fontSize: "0.75rem",
-              color: colors.text,
-              marginTop: "0.75rem",
-            }}
-          >
-            This link expires in 7 days.
-          </p>
-        </Modal>
+        <InviteModel
+          projectId={showInviteModal}
+          onClose={() => setShowInviteModal(null)}
+        />
       )}
 
       {/* Delete Confirm Modal */}

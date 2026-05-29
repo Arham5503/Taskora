@@ -19,7 +19,6 @@ import {
   getProjectById,
   getTasksByProject,
   getProjectTeam,
-  generateInviteLink,
   removeTeamMember,
   updateTaskStatus,
   deleteTask,
@@ -28,6 +27,7 @@ import CreateTask from "../models/CreateTask";
 import { toast } from "react-toastify";
 import { useAuth } from "../Context/AuthContext";
 import { AppSettingsContext } from "../Context/ThemeContext";
+import InviteModel from "../models/InviteModel";
 
 const TASK_STATUS_STYLES = {
   todo: { bg: "#F3F4F6", text: "#374151" },
@@ -64,9 +64,6 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteLink, setInviteLink] = useState("");
-  const [inviteRole, setInviteRole] = useState("viewer");
-  const [linkCopied, setLinkCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
   const [openTaskMenu, setOpenTaskMenu] = useState(null);
 
@@ -89,23 +86,6 @@ export default function ProjectDetail() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGenerateInvite = async (roleToUse = inviteRole) => {
-    try {
-      const response = await generateInviteLink(projectId, roleToUse);
-      setInviteLink(response.inviteUrl);
-      setShowInviteModal(true);
-    } catch {
-      toast.error("Failed to generate invite link");
-    }
-  };
-
-  const copyInviteLink = () => {
-    navigator.clipboard.writeText(inviteLink);
-    setLinkCopied(true);
-    toast.success("Copied!");
-    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   const handleRemoveMember = async (memberId) => {
@@ -237,7 +217,13 @@ export default function ProjectDetail() {
     : "N/A";
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: colors.background, color: colors.text }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: colors.background,
+        color: colors.text,
+      }}
+    >
       {/* Page header */}
       <div
         style={{
@@ -297,7 +283,10 @@ export default function ProjectDetail() {
             }}
           >
             {team.isOwner && (
-              <button onClick={() => handleGenerateInvite()} style={outlineBtnStyle}>
+              <button
+                onClick={() => setShowInviteModal(true)}
+                style={outlineBtnStyle}
+              >
                 <Users size={14} /> Invite
               </button>
             )}
@@ -351,7 +340,7 @@ export default function ProjectDetail() {
               style={{
                 flex: 1,
                 height: "0.375rem",
-              backgroundColor: colors.border,
+                backgroundColor: colors.border,
                 borderRadius: "9999px",
                 overflow: "hidden",
                 maxWidth: "12rem",
@@ -442,7 +431,7 @@ export default function ProjectDetail() {
                     style={{
                       fontSize: "0.875rem",
                       fontWeight: 600,
-                      color: "var(--app-heading)",
+                      color: "#0f172a",
                       margin: 0,
                     }}
                   >
@@ -661,7 +650,7 @@ export default function ProjectDetail() {
                       style={{
                         textAlign: "center",
                         padding: "2rem 0",
-                        color: "#D1D5DB",
+                        color: "#707070",
                         fontSize: "0.8125rem",
                       }}
                     >
@@ -698,7 +687,10 @@ export default function ProjectDetail() {
                 Team Members
               </h3>
               {team.isOwner && (
-                <button onClick={() => handleGenerateInvite()} style={primaryBtnStyle}>
+                <button
+                  onClick={() => setShowInviteModal(true)}
+                  style={primaryBtnStyle}
+                >
                   <Plus size={14} /> Invite
                 </button>
               )}
@@ -765,91 +757,10 @@ export default function ProjectDetail() {
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <ModalShell
-          onClose={() => {
-            setShowInviteModal(false);
-            setInviteLink("");
-            setInviteRole("viewer");
-          }}
-          title="Invite Team Member"
-        >
-          {/* Role Selector */}
-          <div style={{ marginBottom: "1rem" }}>
-            <label
-              style={{
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                color: "var(--app-heading)",
-                display: "block",
-                marginBottom: "0.375rem",
-              }}
-            >
-              Invite as
-            </label>
-            <select
-              value={inviteRole}
-              onChange={(e) => {
-                const nextRole = e.target.value;
-                setInviteRole(nextRole);
-                handleGenerateInvite(nextRole);
-              }}
-              style={{
-                width: "100%",
-                padding: "0.5rem 0.75rem",
-                border: "1px solid var(--app-border)",
-                borderRadius: "0.5rem",
-                fontSize: "0.875rem",
-                color: "var(--app-heading)",
-                backgroundColor: "var(--app-card)",
-                outline: "none",
-                cursor: "pointer",
-              }}
-            >
-              <option value="viewer">Viewer</option>
-              <option value="contributor">Contributor</option>
-              <option value="manager">Manager</option>
-            </select>
-          </div>
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: "var(--app-text)",
-              marginBottom: "1rem",
-            }}
-          >
-            Share this link to invite a team member.
-          </p>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <input
-              type="text"
-              value={inviteLink}
-              readOnly
-              style={{
-                flex: 1,
-                padding: "0.5rem 0.75rem",
-                border: "1px solid var(--app-border)",
-                borderRadius: "0.5rem",
-                backgroundColor: "var(--app-card-muted)",
-                fontSize: "0.875rem",
-                outline: "none",
-                minWidth: 0,
-              }}
-            />
-            <button onClick={copyInviteLink} style={primaryBtnStyle}>
-              {linkCopied ? <Check size={14} /> : <Copy size={14} />}
-              {linkCopied ? "Copied!" : "Copy"}
-            </button>
-          </div>
-          <p
-            style={{
-              fontSize: "0.75rem",
-              color: "var(--app-text)",
-              marginTop: "0.625rem",
-            }}
-          >
-            Expires in 7 days.
-          </p>
-        </ModalShell>
+        <InviteModel
+          projectId={projectId}
+          onClose={() => setShowInviteModal(false)}
+        />
       )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -981,59 +892,6 @@ function MemberRow({ name, email, avatarColor, badge, action }) {
           {badge.label}
         </span>
         {action}
-      </div>
-    </div>
-  );
-}
-
-function ModalShell({ children, onClose, title }) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 50,
-        padding: "1rem",
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: "var(--app-card)",
-          borderRadius: "0.75rem",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-          width: "100%",
-          maxWidth: "28rem",
-          padding: "1.5rem",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "1rem",
-          }}
-        >
-          <h3 style={{ fontSize: "1rem", fontWeight: 600, margin: 0 }}>
-            {title}
-          </h3>
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--app-text)",
-            }}
-          >
-            <X size={18} />
-          </button>
-        </div>
-        {children}
       </div>
     </div>
   );

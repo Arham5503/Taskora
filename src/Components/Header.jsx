@@ -66,7 +66,15 @@ function Header({ onCreateClick, onMenuClick }) {
           flexShrink: 0,
         }}
       >
-        <nav className="flex justify-space-between items-center h-14 gap-3">
+        <nav
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            height: "3.5rem",
+            gap: "0.75rem",
+          }}
+        >
           <div className="flex gap-3 items-center min-w-0">
             <button
               onClick={onMenuClick}
