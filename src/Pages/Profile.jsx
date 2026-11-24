@@ -139,7 +139,7 @@ export default function ProfilePage() {
   }, [profile]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen ">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -280,7 +280,7 @@ export default function ProfilePage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <Mail size={16} className="text-gray-500" />
                   Email
-                  <span className="ml-auto text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+                  <span className="ml-auto text-xs bg-gray-200 text-gray-800 px-2 py-1 rounded-full">
                     Read-only
                   </span>
                 </label>

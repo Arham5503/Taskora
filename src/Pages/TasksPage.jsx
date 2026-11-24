@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Calendar,
   Paperclip,
@@ -18,12 +18,16 @@ import {
 import { getMyTasks, updateTaskStatus, deleteTask } from "../api/ApiBuilder";
 import CreateTask from "../models/CreateTask";
 import { toast } from "react-toastify";
-
+import { AppSettingsContext } from "../Context/ThemeContext";
+import { Link } from "react-router-dom";
 const TasksPage = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
+  const { colors } = useContext(AppSettingsContext);
+  const [groupBy, setGroupBy] = useState("status"); // "status", "priority", "project"
+  const [showGroupMenu, setShowGroupMenu] = useState(false);
 
   useEffect(() => {
     fetchTasks();
@@ -45,7 +49,7 @@ const TasksPage = () => {
       await updateTaskStatus(taskId, newStatus);
       toast.success("Task status updated");
       fetchTasks();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update task");
     }
     setActiveMenu(null);
@@ -57,31 +61,92 @@ const TasksPage = () => {
       await deleteTask(taskId);
       toast.success("Task deleted");
       fetchTasks();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete task");
     }
     setActiveMenu(null);
   };
 
-  // Group tasks by status
-  const groupedTasks = {
-    todo: tasks.filter((t) => t.status === "todo"),
-    in_progress: tasks.filter((t) => t.status === "in_progress"),
-    in_review: tasks.filter((t) => t.status === "in_review"),
-    done: tasks.filter((t) => t.status === "done"),
+  const getGroupedTasks = () => {
+    if (groupBy === "status") {
+      return {
+        todo: tasks.filter((t) => t.status === "todo"),
+        in_progress: tasks.filter((t) => t.status === "in_progress"),
+        in_review: tasks.filter((t) => t.status === "in_review"),
+        done: tasks.filter((t) => t.status === "done"),
+      };
+    } else if (groupBy === "priority") {
+      const grouped = {
+        high: tasks.filter((t) => t.priority === "high"),
+        medium: tasks.filter((t) => t.priority === "medium"),
+        low: tasks.filter((t) => t.priority === "low"),
+      };
+      return grouped;
+    } else if (groupBy === "project") {
+      const grouped = {};
+      tasks.forEach((task) => {
+        const projectName = task.project?.title || "No Project";
+        if (!grouped[projectName]) {
+          grouped[projectName] = [];
+        }
+        grouped[projectName].push(task);
+      });
+      return grouped;
+    }
+    return {};
   };
 
-  const columns = [
-    { id: "todo", title: "To Do", count: groupedTasks.todo.length },
-    { id: "in_progress", title: "In Progress", count: groupedTasks.in_progress.length },
-    { id: "in_review", title: "In Review", count: groupedTasks.in_review.length },
-    { id: "done", title: "Done", count: groupedTasks.done.length },
-  ];
+  const getGroupColumns = () => {
+    const grouped = getGroupedTasks();
+
+    if (groupBy === "status") {
+      return [
+        { id: "todo", title: "To Do", count: grouped.todo.length },
+        {
+          id: "in_progress",
+          title: "In Progress",
+          count: grouped.in_progress.length,
+        },
+        {
+          id: "in_review",
+          title: "In Review",
+          count: grouped.in_review.length,
+        },
+        { id: "done", title: "Done", count: grouped.done.length },
+      ];
+    } else if (groupBy === "priority") {
+      return [
+        { id: "high", title: "High Priority", count: grouped.high.length },
+        {
+          id: "medium",
+          title: "Medium Priority",
+          count: grouped.medium.length,
+        },
+        { id: "low", title: "Low Priority", count: grouped.low.length },
+      ];
+    } else if (groupBy === "project") {
+      return Object.keys(grouped).map((projectName) => ({
+        id: projectName,
+        title: projectName,
+        count: grouped[projectName].length,
+      }));
+    }
+    return [];
+  };
+  // Group tasks by status
+  const groupedTasks = getGroupedTasks();
+
+  const columns = getGroupColumns();
 
   const priorityColors = {
     high: "bg-red-100 text-red-700",
     medium: "bg-blue-100 text-blue-700",
     low: "bg-green-100 text-green-700",
+  };
+
+  const getAttachmentCount = (attachments) => {
+    if (Array.isArray(attachments)) return attachments.length;
+    return Number(attachments) || 0;
   };
 
   const getNextStatus = (currentStatus) => {
@@ -95,6 +160,7 @@ const TasksPage = () => {
 
   const TaskCard = ({ task }) => {
     const isMenuOpen = activeMenu === task._id;
+    const attachmentCount = getAttachmentCount(task.attachments);
 
     return (
       <div className="bg-white rounded-lg p-4 mb-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative">
@@ -142,10 +208,10 @@ const TasksPage = () => {
                 </span>
               </div>
             )}
-            {task.attachments > 0 && (
+            {attachmentCount > 0 && (
               <div className="flex items-center gap-1">
                 <Paperclip size={14} />
-                <span className="text-xs">{task.attachments}</span>
+                <span className="text-xs">{attachmentCount}</span>
               </div>
             )}
             {task.comments > 0 && (
@@ -173,7 +239,9 @@ const TasksPage = () => {
                     className="w-6 h-6 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-white text-xs font-medium"
                     title={assignee.username || assignee.email}
                   >
-                    {(assignee.username || assignee.email || "U")[0].toUpperCase()}
+                    {(assignee.username ||
+                      assignee.email ||
+                      "U")[0].toUpperCase()}
                   </div>
                 ))}
               </div>
@@ -195,23 +263,26 @@ const TasksPage = () => {
           <div className="absolute right-4 top-12 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-40 z-10">
             {task.status !== "done" && (
               <button
-                onClick={() => handleStatusChange(task._id, getNextStatus(task.status))}
+                onClick={() =>
+                  handleStatusChange(task._id, getNextStatus(task.status))
+                }
                 className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
               >
                 Move to Next
               </button>
             )}
-            {["todo", "in_progress", "in_review", "done"].map((status) => (
-              status !== task.status && (
-                <button
-                  key={status}
-                  onClick={() => handleStatusChange(task._id, status)}
-                  className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 capitalize"
-                >
-                  Move to {status.replace("_", " ")}
-                </button>
-              )
-            ))}
+            {["todo", "in_progress", "in_review", "done"].map(
+              (status) =>
+                status !== task.status && (
+                  <button
+                    key={status}
+                    onClick={() => handleStatusChange(task._id, status)}
+                    className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 capitalize"
+                  >
+                    Move to {status.replace("_", " ")}
+                  </button>
+                ),
+            )}
             <div className="border-t border-gray-100 mt-1 pt-1">
               <button
                 onClick={() => handleDeleteTask(task._id)}
@@ -229,45 +300,95 @@ const TasksPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-b-2"
+          style={{ borderBottomColor: colors.primary }}
+        ></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 ">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <button className="flex items-center gap-2 text-blue-600 font-medium px-3 py-2 rounded hover:bg-blue-50">
+      <div className=" bg-white border-b border-gray-200 px-3 sm:px-6 py-4 rounded-lg shadow-sm">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 relative overflow-visible">
+          <div className="flex items-center gap-2 sm:gap-4 pb-1 xl:pb-0">
+            {/* <button className="flex items-center gap-2 text-blue-600 font-medium px-3 py-2 rounded hover:bg-blue-50">
               <Grid3x3 size={18} />
               <span>Board</span>
-            </button>
-            <button className="flex items-center gap-2 text-gray-600 font-medium px-3 py-2 rounded hover:bg-gray-100">
+            </button> */}
+            {/* <button className="flex items-center gap-2 text-gray-600 font-medium px-3 py-2 rounded hover:bg-gray-100">
               <List size={18} />
               <span>List</span>
-            </button>
-            <button className="flex items-center gap-2 text-gray-600 font-medium px-3 py-2 rounded hover:bg-gray-100">
+            </button> */}
+            <Link
+              to="/calendar"
+              className="flex items-center gap-2 text-gray-600 font-medium px-3 py-2 rounded hover:bg-gray-100"
+            >
               <CalendarIcon size={18} />
               <span>Calendar</span>
-            </button>
+            </Link>
+            <div className="relative">
+              <button
+                onClick={() => setShowGroupMenu(!showGroupMenu)}
+                className="flex items-center gap-2 text-gray-700 font-medium px-3 py-2 rounded hover:bg-gray-100"
+              >
+                <Layers size={18} />
+                <span>
+                  Group By:{" "}
+                  {groupBy === "status"
+                    ? "Status"
+                    : groupBy === "priority"
+                      ? "Priority"
+                      : "Project"}
+                </span>
+              </button>
+
+              {showGroupMenu && (
+                <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <button
+                    onClick={() => {
+                      setGroupBy("status");
+                      setShowGroupMenu(false);
+                    }}
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${groupBy === "status" ? "bg-blue-50 text-blue-600" : "text-gray-700"}`}
+                  >
+                    Group by Status
+                  </button>
+                  <button
+                    onClick={() => {
+                      setGroupBy("priority");
+                      setShowGroupMenu(false);
+                    }}
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${groupBy === "priority" ? "bg-blue-50 text-blue-600" : "text-gray-700"}`}
+                  >
+                    Group by Priority
+                  </button>
+                  <button
+                    onClick={() => {
+                      setGroupBy("project");
+                      setShowGroupMenu(false);
+                    }}
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${groupBy === "project" ? "bg-blue-50 text-blue-600" : "text-gray-700"}`}
+                  >
+                    Group by Project
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 text-gray-700 font-medium px-3 py-2 rounded hover:bg-gray-100">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 xl:pb-0">
+            {/* <button className="flex items-center gap-2 text-gray-700 font-medium px-3 py-2 rounded hover:bg-gray-100">
               <Filter size={18} />
               <span>Filter</span>
             </button>
             <button className="flex items-center gap-2 text-gray-700 font-medium px-3 py-2 rounded hover:bg-gray-100">
               <ArrowUpDown size={18} />
               <span>Sort</span>
-            </button>
-            <button className="flex items-center gap-2 text-gray-700 font-medium px-3 py-2 rounded hover:bg-gray-100">
-              <Layers size={18} />
-              <span>Group By</span>
-            </button>
+            </button> */}
             <button
               onClick={() => setShowCreateTask(true)}
               className="flex items-center gap-2 bg-gray-900 text-white font-medium px-4 py-2 rounded-lg hover:bg-gray-800"
@@ -280,13 +401,15 @@ const TasksPage = () => {
       </div>
 
       {/* Kanban Board */}
-      <div className="p-6">
+      <div className="py-4 sm:py-6">
         {tasks.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-gray-400 mb-4">
               <CheckSquare size={48} className="mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-gray-700 mb-2">No tasks yet</h3>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">
+              No tasks yet
+            </h3>
             <p className="text-gray-500 mb-4">
               Create your first task to get started
             </p>
@@ -299,7 +422,7 @@ const TasksPage = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
             {columns.map((column) => (
               <div key={column.id} className="bg-gray-100 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">

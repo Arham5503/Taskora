@@ -1,4 +1,163 @@
 @import "tailwindcss";
+
+:root {
+  --app-bg: #f6f8fb;
+  --app-card: #ffffff;
+  --app-card-muted: #f1f5f9;
+  --app-border: #dde5ef;
+  --app-text: #475569;
+  --app-heading: #0f172a;
+  --app-primary: #2563eb;
+  --app-primary-soft: #eff6ff;
+  --app-accent: #0f766e;
+}
+
+:root[data-theme="dark"] {
+  --app-bg: #0b1220;
+  --app-card: #162033;
+  --app-card-muted: #101a2b;
+  --app-border: #2b3a55;
+  --app-text: #d8e2f0;
+  --app-heading: #f8fafc;
+  --app-primary: #60a5fa;
+  --app-primary-soft: rgba(96, 165, 250, 0.14);
+  --app-accent: #2dd4bf;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: var(--app-bg);
+}
+
+body {
+  margin: 0;
+}
+
+.app-shell {
+  color: var(--app-text);
+}
+
+.app-page-scroll {
+  scrollbar-color: color-mix(in srgb, var(--app-primary) 45%, transparent)
+    transparent;
+}
+
+/* Keep hard-coded Tailwind surfaces theme-aware inside the app shell. */
+.app-shell .bg-white {
+  background-color: var(--app-card) !important;
+}
+
+.app-shell .bg-gray-50,
+.app-shell .bg-gray-100 {
+  background-color: var(--app-card-muted) !important;
+}
+
+.app-shell .text-gray-900,
+.app-shell .text-gray-800,
+.app-shell .text-gray-700 {
+  color: var(--app-heading) !important;
+}
+
+.app-shell .text-gray-600,
+.app-shell .text-gray-500,
+.app-shell .text-gray-400 {
+  color: var(--app-text) !important;
+}
+
+.app-shell .border,
+.app-shell .border-t,
+.app-shell .border-b,
+.app-shell .border-l,
+.app-shell .border-r,
+.app-shell .border-gray-100,
+.app-shell .border-gray-200,
+.app-shell .border-gray-300 {
+  border-color: var(--app-border) !important;
+}
+
+.app-shell input,
+.app-shell select,
+.app-shell textarea {
+  background-color: var(--app-card) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-heading) !important;
+}
+
+.app-shell input::placeholder,
+.app-shell textarea::placeholder {
+  color: var(--app-text);
+}
+
+.app-shell .shadow-sm,
+.app-shell .shadow,
+.app-shell .shadow-md,
+.app-shell .shadow-lg,
+.app-shell .shadow-xl {
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08) !important;
+}
+
+:root[data-theme="dark"] .app-shell .shadow-sm,
+:root[data-theme="dark"] .app-shell .shadow,
+:root[data-theme="dark"] .app-shell .shadow-md,
+:root[data-theme="dark"] .app-shell .shadow-lg,
+:root[data-theme="dark"] .app-shell .shadow-xl {
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28) !important;
+}
+
+:root[data-theme="dark"] .app-shell .hover\:bg-gray-50:hover,
+:root[data-theme="dark"] .app-shell .hover\:bg-gray-100:hover,
+:root[data-theme="dark"] .app-shell .hover\:bg-gray-200:hover {
+  background-color: #1f2d44 !important;
+}
+
+.app-shell .bg-gray-900 {
+  background: linear-gradient(135deg, var(--app-primary), var(--app-accent)) !important;
+}
+
+.app-shell .text-blue-600,
+.app-shell .text-indigo-600,
+.app-shell .text-purple-700 {
+  color: var(--app-primary) !important;
+}
+
+.app-shell .bg-blue-50,
+.app-shell .bg-indigo-50,
+.app-shell .bg-purple-100 {
+  background-color: var(--app-primary-soft) !important;
+}
+
+:root[data-theme="dark"] .app-shell .bg-red-100,
+:root[data-theme="dark"] .app-shell .bg-green-100,
+:root[data-theme="dark"] .app-shell .bg-yellow-100,
+:root[data-theme="dark"] .app-shell .bg-blue-100,
+:root[data-theme="dark"] .app-shell .bg-purple-100 {
+  background-color: rgba(96, 165, 250, 0.14) !important;
+}
+
+:root[data-theme="dark"] .app-shell .text-red-700 {
+  color: #fca5a5 !important;
+}
+
+:root[data-theme="dark"] .app-shell .text-green-700 {
+  color: #86efac !important;
+}
+
+:root[data-theme="dark"] .app-shell .text-blue-700,
+:root[data-theme="dark"] .app-shell .text-purple-700 {
+  color: #bfdbfe !important;
+}
+
+.app-shell .border-blue-500,
+.app-shell .border-blue-600 {
+  border-color: var(--app-primary) !important;
+}
+
+.app-shell .focus\:ring-blue-500:focus,
+.app-shell .focus\:ring-blue-600:focus {
+  --tw-ring-color: var(--app-primary) !important;
+}
 /* typography.css */
 .h1 {
   font-family: "Work Sans", sans-serif;
@@ -65,5 +224,17 @@
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+}
+
+@media (max-width: 1024px) {
+  .app-page-scroll {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-page-scroll {
+    padding: 0.75rem !important;
+  }
 }
 

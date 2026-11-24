@@ -1,158 +1,493 @@
-import React, { useState } from "react";
-import { Clock, MoreVertical } from "lucide-react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Bell, Clock, MoreVertical, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AppSettingsContext } from "../Context/ThemeContext";
+import {
+  deleteNotification,
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "../api/ApiBuilder";
+
+const tabs = ["All", "Tasks", "Mentions", "Projects", "System"];
+
+const typeByTab = {
+  All: "all",
+  Tasks: "task",
+  Mentions: "mention",
+  Projects: "project",
+  System: "system",
+};
+
+const notifyCountChanged = () => {
+  window.dispatchEvent(new Event("notifications:changed"));
+};
+
+const getId = (value) => {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  return value._id || value.id || null;
+};
+
+const getProjectId = (notification) => {
+  const taskProject = notification.task?.project;
+  return getId(notification.project) || getId(taskProject);
+};
+
+const formatTime = (dateValue) => {
+  if (!dateValue) return "";
+  const date = new Date(dateValue);
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+
+  if (diffMinutes < 1) return "Just now";
+  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} hr ago`;
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
+  });
+};
+
+const getDateGroup = (dateValue) => {
+  const date = new Date(dateValue);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) return "Today";
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return "Earlier";
+};
+
+const getInitial = (notification) => {
+  const actor = notification.actor;
+  const name = actor?.username || actor?.name || actor?.email || notification.title || "N";
+  return name[0]?.toUpperCase() || "N";
+};
 
 const NotificationInbox = () => {
+  const navigate = useNavigate();
+  const { colors } = useContext(AppSettingsContext);
   const [activeTab, setActiveTab] = useState("All");
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [openMenuId, setOpenMenuId] = useState(null);
 
-  const tabs = ["All", "Tasks", "Mentions", "Projects", "System"];
+  const fetchNotifications = useCallback(async () => {
+    setLoading(true);
+    setError("");
 
-  const notifications = [
-    {
-      id: 1,
-      type: "task",
-      category: "TODAY",
-      title: "Task assigned to you",
-      description: "Alex Morgan assigned you the task 'Update design system'",
-      time: "about 1 hour ago",
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
-      unread: true,
-    },
-    {
-      id: 2,
-      type: "mention",
-      category: "TODAY",
-      title: "You were mentioned in a comment",
-      description:
-        "Jessica Chen mentioned you in a comment: 'Can @you review this by tomorrow?'",
-      time: "about 3 hours ago",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-      unread: false,
-    },
-    {
-      id: 3,
-      type: "project",
-      category: "TODAY",
-      title: "Project status updated",
-      description:
-        "The project 'Figma Design System' status changed to 'In Progress'",
-      time: "about 6 hours ago",
-      avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop",
-      unread: true,
-    },
-    {
-      id: 4,
-      type: "task",
-      category: "YESTERDAY",
-      title: "Task completed",
-      description:
-        'Your task "Review user feedback" has been marked as complete',
-      time: "yesterday at 4:30 PM",
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
-      unread: false,
-    },
-  ];
+    try {
+      const response = await getNotifications({
+        type: typeByTab[activeTab],
+        page: 1,
+        limit: 30,
+      });
+      setNotifications(response.notifications || []);
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+      setError("Failed to load notifications");
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab]);
 
-  const getFilteredNotifications = () => {
-    if (activeTab === "All") return notifications;
-    return notifications.filter(
-      (n) => n.type.toLowerCase() === activeTab.toLowerCase().slice(0, -1)
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  const groupedNotifications = useMemo(() => {
+    return notifications.reduce(
+      (groups, notification) => {
+        const group = getDateGroup(notification.createdAt);
+        groups[group].push(notification);
+        return groups;
+      },
+      { Today: [], Yesterday: [], Earlier: [] },
     );
+  }, [notifications]);
+
+  const handleNotificationClick = async (notification) => {
+    const notificationId = notification._id || notification.id;
+
+    if (!notification.read) {
+      setNotifications((current) =>
+        current.map((item) =>
+          (item._id || item.id) === notificationId ? { ...item, read: true } : item,
+        ),
+      );
+      notifyCountChanged();
+
+      try {
+        await markNotificationRead(notificationId);
+      } catch (err) {
+        console.error("Failed to mark notification as read:", err);
+      }
+    }
+
+    const projectId = getProjectId(notification);
+    if (projectId) {
+      navigate(`/project/${projectId}`);
+    } else if (notification.task) {
+      navigate("/tasks");
+    }
   };
 
-  const groupedNotifications = getFilteredNotifications().reduce(
-    (acc, notification) => {
-      if (!acc[notification.category]) {
-        acc[notification.category] = [];
-      }
-      acc[notification.category].push(notification);
-      return acc;
-    },
-    {}
-  );
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setNotifications((current) =>
+        current.map((notification) => ({ ...notification, read: true })),
+      );
+      notifyCountChanged();
+    } catch (err) {
+      console.error("Failed to mark all notifications as read:", err);
+      setError("Failed to mark notifications as read");
+    }
+  };
+
+  const handleDelete = async (event, notificationId) => {
+    event.stopPropagation();
+    setOpenMenuId(null);
+
+    try {
+      await deleteNotification(notificationId);
+      setNotifications((current) =>
+        current.filter((notification) => (notification._id || notification.id) !== notificationId),
+      );
+      notifyCountChanged();
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+      setError("Failed to delete notification");
+    }
+  };
+
+  const hasUnread = notifications.some((notification) => !notification.read);
+  const hasNotifications = notifications.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto bg-white min-h-screen shadow-sm">
-        {/* Tabs */}
-        <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
-          <div className="flex overflow-x-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-4 text-sm font-medium whitespace-nowrap transition-colors ${
-                  activeTab === tab
-                    ? "text-gray-900 border-b-2 border-gray-900"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+    <div style={{ minHeight: "100%", backgroundColor: colors.background }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "64rem",
+          margin: "0 auto",
+          backgroundColor: colors.cards,
+          border: `1px solid ${colors.border}`,
+          borderRadius: "0.75rem",
+          overflow: "hidden",
+          boxShadow: "0 12px 32px rgba(15, 23, 42, 0.08)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "0.75rem",
+            padding: "1rem 1.25rem",
+            borderBottom: `1px solid ${colors.border}`,
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <h2
+              style={{
+                color: colors.boldText,
+                fontSize: "1.25rem",
+                fontWeight: 700,
+                margin: 0,
+              }}
+            >
+              Notifications
+            </h2>
+            <p style={{ color: colors.text, fontSize: "0.875rem", margin: "0.25rem 0 0" }}>
+              Updates from tasks, mentions, projects, and system events
+            </p>
           </div>
+          <button
+            onClick={handleMarkAllRead}
+            disabled={!hasUnread || loading}
+            style={{
+              padding: "0.5rem 0.75rem",
+              borderRadius: "0.5rem",
+              border: `1px solid ${colors.border}`,
+              backgroundColor: hasUnread ? colors.primarySoft : colors.muted,
+              color: hasUnread ? colors.primary : colors.text,
+              cursor: hasUnread && !loading ? "pointer" : "not-allowed",
+              fontWeight: 600,
+              fontSize: "0.875rem",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Mark all as read
+          </button>
         </div>
 
-        {/* Notifications */}
-        <div className="divide-y divide-gray-100">
-          {Object.entries(groupedNotifications).map(([category, items]) => (
-            <div key={category}>
-              <div className="px-6 py-3 bg-gray-50">
-                <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  {category}
-                </h2>
-              </div>
-
-              {items.map((notification) => (
-                <div
-                  key={notification.id}
-                  className="px-6 py-4 hover:bg-gray-50 transition-colors relative"
-                >
-                  <div className="flex items-start gap-4">
-                    {/* Avatar */}
-                    <img
-                      src={notification.avatar}
-                      alt="Avatar"
-                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                    />
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-gray-900 mb-1">
-                        {notification.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {notification.description}
-                      </p>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Clock className="w-3.5 h-3.5 mr-1" />
-                        {notification.time}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {notification.unread && (
-                        <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                      )}
-                      <button className="p-1 hover:bg-gray-200 rounded transition-colors">
-                        <MoreVertical className="w-5 h-5 text-gray-400" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div
+          style={{
+            display: "flex",
+            overflowX: "auto",
+            borderBottom: `1px solid ${colors.border}`,
+            backgroundColor: colors.cards,
+          }}
+        >
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                padding: "0.875rem 1rem",
+                border: "none",
+                borderBottom:
+                  activeTab === tab ? `2px solid ${colors.primary}` : "2px solid transparent",
+                background: "transparent",
+                color: activeTab === tab ? colors.boldText : colors.text,
+                cursor: "pointer",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {tab}
+            </button>
           ))}
         </div>
 
-        {/* Empty State */}
-        {getFilteredNotifications().length === 0 && (
-          <div className="px-6 py-16 text-center">
-            <p className="text-gray-500">No notifications in this category</p>
+        {error && (
+          <div
+            style={{
+              margin: "1rem",
+              padding: "0.75rem 1rem",
+              borderRadius: "0.5rem",
+              backgroundColor: "#FEE2E2",
+              color: "#B91C1C",
+              fontSize: "0.875rem",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div style={{ padding: "4rem 1rem", textAlign: "center", color: colors.text }}>
+            Loading notifications...
+          </div>
+        ) : !hasNotifications ? (
+          <div
+            style={{
+              padding: "4rem 1rem",
+              textAlign: "center",
+              color: colors.text,
+            }}
+          >
+            <Bell size={42} style={{ margin: "0 auto 0.75rem", color: colors.primary }} />
+            <h3 style={{ color: colors.boldText, margin: "0 0 0.375rem", fontSize: "1rem" }}>
+              No notifications
+            </h3>
+            <p style={{ margin: 0, fontSize: "0.875rem" }}>
+              You are all caught up in this category.
+            </p>
+          </div>
+        ) : (
+          <div>
+            {Object.entries(groupedNotifications)
+              .filter(([, items]) => items.length > 0)
+              .map(([group, items]) => (
+                <div key={group}>
+                  <div
+                    style={{
+                      padding: "0.75rem 1.25rem",
+                      backgroundColor: colors.muted,
+                      borderBottom: `1px solid ${colors.border}`,
+                    }}
+                  >
+                    <h3
+                      style={{
+                        color: colors.text,
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                        margin: 0,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {group}
+                    </h3>
+                  </div>
+
+                  {items.map((notification) => {
+                    const notificationId = notification._id || notification.id;
+                    const avatar = notification.actor?.profile;
+
+                    return (
+                      <div
+                        key={notificationId}
+                        onClick={() => handleNotificationClick(notification)}
+                        style={{
+                          position: "relative",
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: "0.875rem",
+                          padding: "1rem 1.25rem",
+                          borderBottom: `1px solid ${colors.border}`,
+                          backgroundColor: notification.read ? colors.cards : colors.primarySoft,
+                          cursor: "pointer",
+                          transition: "background-color 0.15s",
+                        }}
+                      >
+                        {avatar ? (
+                          <img
+                            src={avatar}
+                            alt=""
+                            style={{
+                              width: "2.75rem",
+                              height: "2.75rem",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                              flexShrink: 0,
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: "2.75rem",
+                              height: "2.75rem",
+                              borderRadius: "50%",
+                              backgroundColor: colors.primary,
+                              color: "#fff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: 700,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {getInitial(notification)}
+                          </div>
+                        )}
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h4
+                            style={{
+                              color: colors.boldText,
+                              fontSize: "0.9375rem",
+                              fontWeight: 700,
+                              margin: "0 0 0.25rem",
+                            }}
+                          >
+                            {notification.title}
+                          </h4>
+                          <p
+                            style={{
+                              color: colors.text,
+                              fontSize: "0.875rem",
+                              margin: "0 0 0.5rem",
+                              lineHeight: 1.45,
+                            }}
+                          >
+                            {notification.description}
+                          </p>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.25rem",
+                              color: colors.text,
+                              fontSize: "0.75rem",
+                            }}
+                          >
+                            <Clock size={13} />
+                            {formatTime(notification.createdAt)}
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {!notification.read && (
+                            <span
+                              aria-label="Unread"
+                              style={{
+                                width: "0.55rem",
+                                height: "0.55rem",
+                                borderRadius: "50%",
+                                backgroundColor: "#2563EB",
+                                display: "inline-block",
+                              }}
+                            />
+                          )}
+                          <div style={{ position: "relative" }}>
+                            <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setOpenMenuId(openMenuId === notificationId ? null : notificationId);
+                              }}
+                              aria-label="Notification actions"
+                              style={{
+                                padding: "0.35rem",
+                                border: `1px solid ${colors.border}`,
+                                borderRadius: "0.375rem",
+                                backgroundColor: colors.cards,
+                                color: colors.text,
+                                cursor: "pointer",
+                                display: "flex",
+                              }}
+                            >
+                              <MoreVertical size={16} />
+                            </button>
+                            {openMenuId === notificationId && (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  right: 0,
+                                  top: "2rem",
+                                  width: "8.5rem",
+                                  backgroundColor: colors.cards,
+                                  border: `1px solid ${colors.border}`,
+                                  borderRadius: "0.5rem",
+                                  boxShadow: "0 12px 24px rgba(15, 23, 42, 0.14)",
+                                  zIndex: 5,
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <button
+                                  onClick={(event) => handleDelete(event, notificationId)}
+                                  style={{
+                                    width: "100%",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.5rem",
+                                    padding: "0.625rem 0.75rem",
+                                    border: "none",
+                                    background: "transparent",
+                                    color: "#DC2626",
+                                    cursor: "pointer",
+                                    fontSize: "0.875rem",
+                                  }}
+                                >
+                                  <Trash2 size={14} />
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
           </div>
         )}
       </div>

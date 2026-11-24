@@ -1,45 +1,69 @@
-import {
-  Search,
-  CirclePlus,
-  Bell,
-  User,
-  Sun,
-  Moon,
-  Menu,
-  X,
-} from "lucide-react";
-import { useContext, useState, useEffect } from "react";
-import { AppSettingsContext } from "../Context/ThemeContext";
+import { Bell, CirclePlus, Menu, Moon, Sun, User } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { AppSettingsContext } from "../Context/ThemeContext";
+import { getUnreadNotificationCount } from "../api/ApiBuilder";
 
 function Header({ onCreateClick, onMenuClick }) {
   const { isDark, toggleTheme, colors } = useContext(AppSettingsContext);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
+  const iconColor = isDark ? "#E2E8F0" : "#334155";
 
   useEffect(() => {
     const path = location.pathname.split("/")[1];
     setActiveTab(path || "dashboard");
   }, [location.pathname]);
 
-  // Close search on route change
   useEffect(() => {
-    setSearchOpen(false);
+    fetchUnreadCount();
+    const intervalId = window.setInterval(fetchUnreadCount, 30000);
+
+    window.addEventListener("notifications:changed", fetchUnreadCount);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("notifications:changed", fetchUnreadCount);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname === "/notifications") {
+      fetchUnreadCount();
+    }
   }, [location.pathname]);
 
-  const iconColor = isDark ? "#ffffff" : "#111827";
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await getUnreadNotificationCount();
+      setUnreadCount(response.unreadCount ?? response.count ?? 0);
+    } catch (error) {
+      console.error("Failed to fetch unread notifications:", error);
+    }
+  };
+
+  const actionStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0.45rem",
+    borderRadius: "0.5rem",
+    border: `1px solid ${colors.border}`,
+    background: "transparent",
+    cursor: "pointer",
+    color: iconColor,
+  };
 
   return (
     <>
       <header
+        className="relative z-30"
         style={{
           backgroundColor: colors.header,
-          boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+          borderBottom: `1px solid ${colors.border}`,
+          backdropFilter: "blur(16px)",
           padding: "0 1.25rem",
           flexShrink: 0,
-          zIndex: 30,
-          position: "relative",
         }}
       >
         <nav
@@ -51,46 +75,27 @@ function Header({ onCreateClick, onMenuClick }) {
             gap: "0.75rem",
           }}
         >
-          {/* Left: Hamburger (tablet/mobile) + Page Title */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              minWidth: 0,
-            }}
-          >
-            {/* Hamburger — only visible on tablet/mobile */}
+          <div className="flex gap-3 items-center min-w-0">
             <button
               onClick={onMenuClick}
               aria-label="Open menu"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "0.25rem",
-                display: "none",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "0.375rem",
-                flexShrink: 0,
-                color: iconColor,
-              }}
               className="hamburger-btn"
+              style={{
+                ...actionStyle,
+                display: "none",
+                background: colors.primarySoft,
+              }}
             >
               <Menu size={22} stroke={iconColor} strokeWidth={2} />
             </button>
 
-            {/* Page Title */}
             <h1
+              className="m-0 weight-700 capitalize whitespace-nowrap "
               style={{
-                color: colors.text,
+                color: colors.boldText,
                 fontSize: "1.125rem",
-                fontWeight: 600,
-                margin: 0,
-                borderBottom: "2px solid #2563EB",
-                textTransform: "capitalize",
-                whiteSpace: "nowrap",
+                fontWeight: 700,
+                borderBottom: `2px solid ${colors.primary}`,
                 flexShrink: 0,
                 paddingBottom: "1px",
               }}
@@ -99,206 +104,77 @@ function Header({ onCreateClick, onMenuClick }) {
             </h1>
           </div>
 
-          {/* Right: Actions */}
           <div
+            className="flex items-center gap-1.5 "
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
               flexShrink: 0,
             }}
           >
-            {/* Search input — hidden on mobile, shown inline on desktop */}
-            <div
-              className="search-desktop"
-              style={{
-                position: "relative",
-                width: "clamp(8rem, 18vw, 18rem)",
-              }}
-            >
-              <Search
-                stroke={isDark ? "#ffffff" : "#9CA3AF"}
-                size={15}
-                style={{
-                  position: "absolute",
-                  left: "0.6rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  pointerEvents: "none",
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Search…"
-                style={{
-                  width: "100%",
-                  paddingLeft: "2rem",
-                  paddingRight: "0.75rem",
-                  paddingTop: "0.4rem",
-                  paddingBottom: "0.4rem",
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: "9999px",
-                  color: colors.text,
-                  backgroundColor: "transparent",
-                  fontSize: "0.875rem",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
-
-            {/* Search icon — mobile only */}
-            <button
-              onClick={() => setSearchOpen((v) => !v)}
-              aria-label="Search"
-              className="search-mobile-btn"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "0.375rem",
-                display: "none",
-                alignItems: "center",
-                borderRadius: "0.375rem",
-              }}
-            >
-              {searchOpen ? (
-                <X size={20} stroke={iconColor} strokeWidth={2} />
-              ) : (
-                <Search size={20} stroke={iconColor} strokeWidth={2} />
-              )}
-            </button>
-
-            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
               aria-label="Toggle theme"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "0.375rem",
-                display: "flex",
-                alignItems: "center",
-                borderRadius: "0.375rem",
-              }}
+              style={actionStyle}
             >
               {isDark ? (
-                <Sun stroke="#ffffff" strokeWidth={2} size={20} />
+                <Sun stroke={iconColor} strokeWidth={2} size={20} />
               ) : (
-                <Moon size={20} stroke={iconColor} strokeWidth={2} />
+                <Moon stroke={iconColor} strokeWidth={2} size={20} />
               )}
             </button>
 
-            {/* Create */}
             <button
               onClick={onCreateClick}
               aria-label="Create new"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "0.375rem",
-                display: "flex",
-                alignItems: "center",
-                borderRadius: "0.375rem",
-              }}
+              style={actionStyle}
             >
               <CirclePlus stroke={iconColor} strokeWidth={2} size={20} />
             </button>
 
-            {/* Notifications */}
             <Link
               to="/notifications"
               aria-label="Notifications"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "0.375rem",
-                borderRadius: "0.375rem",
-              }}
+              style={{ ...actionStyle, position: "relative" }}
             >
               <Bell stroke={iconColor} strokeWidth={2} size={20} />
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-0.35rem",
+                    right: "-0.35rem",
+                    minWidth: "1.05rem",
+                    height: "1.05rem",
+                    padding: "0 0.25rem",
+                    borderRadius: "9999px",
+                    backgroundColor: "#DC2626",
+                    color: "#fff",
+                    border: `2px solid ${colors.header}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.65rem",
+                    fontWeight: 700,
+                    lineHeight: 1,
+                  }}
+                >
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </Link>
 
-            {/* Profile */}
-            <Link
-              to="/profile"
-              aria-label="Profile"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "0.375rem",
-                borderRadius: "0.375rem",
-              }}
-            >
+            <Link to="/profile" aria-label="Profile" style={actionStyle}>
               <User stroke={iconColor} strokeWidth={2} size={20} />
             </Link>
           </div>
         </nav>
-
-        {/* Mobile search bar — slides down when searchOpen */}
-        <div
-          style={{
-            overflow: "hidden",
-            maxHeight: searchOpen ? "4rem" : "0",
-            transition: "max-height 0.2s ease",
-          }}
-          className="search-mobile-bar"
-        >
-          <div style={{ position: "relative", paddingBottom: "0.75rem" }}>
-            <Search
-              stroke={isDark ? "#ffffff" : "#9CA3AF"}
-              size={15}
-              style={{
-                position: "absolute",
-                left: "0.6rem",
-                top: "0.55rem",
-                pointerEvents: "none",
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Search…"
-              autoFocus={searchOpen}
-              style={{
-                width: "100%",
-                paddingLeft: "2rem",
-                paddingRight: "0.75rem",
-                paddingTop: "0.45rem",
-                paddingBottom: "0.45rem",
-                border: `1px solid ${colors.border}`,
-                borderRadius: "9999px",
-                color: colors.text,
-                backgroundColor: "transparent",
-                fontSize: "0.875rem",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-        </div>
       </header>
 
       <style>{`
-        /* Tablet & mobile: show hamburger, hide desktop search, show mobile search btn */
         @media (max-width: 1024px) {
           .hamburger-btn { display: flex !important; }
-          .search-desktop { display: none !important; }
-          .search-mobile-btn { display: flex !important; }
-          .search-mobile-bar { display: block; }
         }
-        /* Desktop: hide hamburger and mobile controls */
         @media (min-width: 1025px) {
           .hamburger-btn { display: none !important; }
-          .search-desktop { display: block !important; }
-          .search-mobile-btn { display: none !important; }
-          .search-mobile-bar { display: none !important; }
-        }
-        /* Icon hover feedback */
-        .hamburger-btn:hover,
-        .search-mobile-btn:hover {
-          background: rgba(0,0,0,0.06);
         }
       `}</style>
     </>

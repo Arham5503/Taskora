@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -19,31 +19,57 @@ import {
   getProjectById,
   getTasksByProject,
   getProjectTeam,
-  generateInviteLink,
   removeTeamMember,
   updateTaskStatus,
   deleteTask,
 } from "../api/ApiBuilder";
 import CreateTask from "../models/CreateTask";
 import { toast } from "react-toastify";
+import { useAuth } from "../Context/AuthContext";
+import { AppSettingsContext } from "../Context/ThemeContext";
+import InviteModel from "../models/InviteModel";
+
+const TASK_STATUS_STYLES = {
+  todo: { bg: "#F3F4F6", text: "#374151" },
+  in_progress: { bg: "#DBEAFE", text: "#1D4ED8" },
+  in_review: { bg: "#FEF9C3", text: "#A16207" },
+  done: { bg: "#DCFCE7", text: "#15803D" },
+};
+const PRIORITY_STYLES = {
+  high: { bg: "#FEE2E2", text: "#DC2626" },
+  medium: { bg: "#FEF9C3", text: "#CA8A04" },
+  low: { bg: "#DCFCE7", text: "#16A34A" },
+};
+const COLUMN_COLORS = {
+  todo: "#F3F4F6",
+  in_progress: "#EFF6FF",
+  in_review: "#FEFCE8",
+  done: "#F0FDF4",
+};
+
+function formatStatus(status) {
+  return (
+    status?.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()) || ""
+  );
+}
 
 export default function ProjectDetail() {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { colors } = useContext(AppSettingsContext);
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [team, setTeam] = useState({ owner: null, team: [], isOwner: false });
   const [loading, setLoading] = useState(true);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteLink, setInviteLink] = useState("");
-  const [linkCopied, setLinkCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
+  const [openTaskMenu, setOpenTaskMenu] = useState(null);
 
   useEffect(() => {
     fetchProjectData();
   }, [projectId]);
-
   const fetchProjectData = async () => {
     try {
       const [projectData, tasksData, teamData] = await Promise.all([
@@ -55,37 +81,20 @@ export default function ProjectDetail() {
       setTasks(tasksData);
       setTeam(teamData);
     } catch (error) {
-      console.error("Failed to fetch project data:", error);
+      console.error(error);
       toast.error("Failed to load project");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGenerateInvite = async () => {
-    try {
-      const response = await generateInviteLink(projectId);
-      setInviteLink(response.inviteUrl);
-      setShowInviteModal(true);
-    } catch (error) {
-      toast.error("Failed to generate invite link");
-    }
-  };
-
-  const copyInviteLink = () => {
-    navigator.clipboard.writeText(inviteLink);
-    setLinkCopied(true);
-    toast.success("Invite link copied!");
-    setTimeout(() => setLinkCopied(false), 2000);
-  };
-
   const handleRemoveMember = async (memberId) => {
     if (!confirm("Remove this team member?")) return;
     try {
       await removeTeamMember(projectId, memberId);
-      toast.success("Team member removed");
+      toast.success("Member removed");
       fetchProjectData();
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove member");
     }
   };
@@ -93,56 +102,23 @@ export default function ProjectDetail() {
   const handleUpdateTaskStatus = async (taskId, newStatus) => {
     try {
       await updateTaskStatus(taskId, newStatus);
-      toast.success("Task status updated");
+      toast.success("Task updated");
       fetchProjectData();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update task");
     }
+    setOpenTaskMenu(null);
   };
-
   const handleDeleteTask = async (taskId) => {
     if (!confirm("Delete this task?")) return;
     try {
       await deleteTask(taskId);
       toast.success("Task deleted");
       fetchProjectData();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete task");
     }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "todo":
-        return "bg-gray-100 text-gray-700";
-      case "in_progress":
-        return "bg-blue-100 text-blue-700";
-      case "in_review":
-        return "bg-yellow-100 text-yellow-700";
-      case "done":
-        return "bg-green-100 text-green-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-700";
-      case "medium":
-        return "bg-yellow-100 text-yellow-700";
-      case "low":
-        return "bg-green-100 text-green-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  const formatStatus = (status) => {
-    return (
-      status?.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()) || ""
-    );
+    setOpenTaskMenu(null);
   };
 
   const groupedTasks = {
@@ -152,24 +128,80 @@ export default function ProjectDetail() {
     done: tasks.filter((t) => t.status === "done"),
   };
 
+  const NEXT_STATUS = {
+    todo: "in_progress",
+    in_progress: "in_review",
+    in_review: "done",
+  };
+
+  const currentMember = team.team?.find((member) => {
+    const memberUserId = member.user?._id || member.user || member._id;
+    return memberUserId === user?._id;
+  });
+  const currentRole = currentMember?.role?.toLowerCase();
+  const canCreateTask =
+    team.isOwner || currentRole === "owner" || currentRole === "manager";
+
+  const openCreateTask = () => {
+    if (!canCreateTask) {
+      toast.error("Only project owners and managers can add tasks");
+      return;
+    }
+    setShowCreateTask(true);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "60vh",
+        }}
+      >
+        <div
+          style={{
+            width: "3rem",
+            height: "3rem",
+            borderRadius: "50%",
+            border: "3px solid #E5E7EB",
+            borderTopColor: "#111827",
+            animation: "spin 0.7s linear infinite",
+          }}
+        />
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "60vh",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <h2
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: 600,
+              marginBottom: "0.5rem",
+            }}
+          >
             Project Not Found
           </h2>
           <button
             onClick={() => navigate("/project")}
-            className="text-blue-600 hover:underline"
+            style={{
+              color: "#2563EB",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
           >
             Back to Projects
           </button>
@@ -178,191 +210,435 @@ export default function ProjectDetail() {
     );
   }
 
+  const deadline = project.startDate
+    ? new Date(
+        new Date(project.startDate).getTime() + project.durationDays * 86400000,
+      ).toLocaleDateString()
+    : "N/A";
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center gap-4 mb-4">
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: colors.background,
+        color: colors.text,
+      }}
+    >
+      {/* Page header */}
+      <div
+        style={{
+          backgroundColor: colors.cards,
+          borderBottom: `1px solid ${colors.border}`,
+          padding: "1rem 1.25rem",
+        }}
+      >
+        {/* Top row */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            gap: "0.75rem",
+            marginBottom: "1rem",
+          }}
+        >
           <button
             onClick={() => navigate("/project")}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            style={{
+              padding: "0.4rem",
+              borderRadius: "0.5rem",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#374151",
+              display: "flex",
+              alignItems: "center",
+              flexShrink: 0,
+            }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft size={20} />
           </button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">
+          <div style={{ flex: 1, minWidth: "10rem" }}>
+            <h1
+              style={{
+                fontSize: "clamp(1.125rem, 3vw, 1.5rem)",
+                fontWeight: 700,
+                color: colors.boldText,
+                margin: "0 0 0.25rem",
+              }}
+            >
               {project.title}
             </h1>
-            <p className="text-gray-600">{project.description}</p>
+            <p style={{ fontSize: "0.875rem", color: colors.text, margin: 0 }}>
+              {project.description}
+            </p>
           </div>
-          <div className="flex items-center gap-3">
+          {/* Action buttons */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.5rem",
+              flexShrink: 0,
+            }}
+          >
             {team.isOwner && (
               <button
-                onClick={handleGenerateInvite}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                onClick={() => setShowInviteModal(true)}
+                style={outlineBtnStyle}
               >
-                <Users className="w-4 h-4" />
-                Invite
+                <Users size={14} /> Invite
               </button>
             )}
-            <button
-              onClick={() => setShowCreateTask(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Task
-            </button>
+            {canCreateTask && (
+              <button onClick={openCreateTask} style={primaryBtnStyle}>
+                <Plus size={14} /> Add Task
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-600">
-              Deadline:{" "}
-              {project.startDate
-                ? new Date(
-                    new Date(project.startDate).getTime() +
-                      project.durationDays * 24 * 60 * 60 * 1000,
-                  ).toLocaleDateString()
-                : "N/A"}
-            </span>
+        {/* Stats row — scrollable on mobile */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "1rem",
+            fontSize: "0.8125rem",
+            color: colors.text,
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}
+          >
+            <Calendar size={14} style={{ color: "#9CA3AF" }} />
+            Deadline: {deadline}
           </div>
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-600">
-              {team.team?.length || 0} members
-            </span>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}
+          >
+            <Users size={14} style={{ color: "#9CA3AF" }} />
+            {team.team?.length || 0} members
           </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-600">
-              {project.completedTasks || 0}/{project.totalTasks || 0} tasks
-            </span>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}
+          >
+            <CheckCircle size={14} style={{ color: "#9CA3AF" }} />
+            {project.completedTasks || 0}/{project.totalTasks || 0} tasks
           </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-xs">
-                <div
-                  className="bg-green-500 h-2 rounded-full transition-all"
-                  style={{ width: `${project.progress || 0}%` }}
-                ></div>
-              </div>
-              <span className="text-gray-600">{project.progress || 0}%</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              flex: 1,
+              minWidth: "8rem",
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                height: "0.375rem",
+                backgroundColor: colors.border,
+                borderRadius: "9999px",
+                overflow: "hidden",
+                maxWidth: "12rem",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  background: `linear-gradient(90deg, ${colors.primary}, ${colors.accent})`,
+                  width: `${project.progress || 0}%`,
+                  borderRadius: "9999px",
+                  transition: "width 0.3s",
+                }}
+              />
             </div>
+            <span>{project.progress || 0}%</span>
           </div>
         </div>
       </div>
+
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-200 px-6">
-        <div className="flex gap-6">
+      <div
+        style={{
+          backgroundColor: colors.cards,
+          borderBottom: `1px solid ${colors.border}`,
+          padding: "0 1.25rem",
+        }}
+      >
+        <div style={{ display: "flex", gap: "0" }}>
           {["tasks", "team"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`py-3 px-1 border-b-2 font-medium capitalize transition-colors ${
-                activeTab === tab
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+              style={{
+                padding: "0.75rem 1rem",
+                border: "none",
+                background: "none",
+                cursor: "pointer",
+                fontSize: "0.9375rem",
+                fontWeight: 500,
+                textTransform: "capitalize",
+                color: activeTab === tab ? colors.boldText : colors.text,
+                borderBottom:
+                  activeTab === tab
+                    ? `2px solid ${colors.primary}`
+                    : "2px solid transparent",
+                transition: "color 0.15s, border-color 0.15s",
+              }}
             >
               {tab}
             </button>
           ))}
         </div>
       </div>
+
       {/* Content */}
-      <div className="p-6">
+      <div style={{ padding: "1.25rem" }}>
+        {/* ── Tasks board ── */}
         {activeTab === "tasks" && (
-          <div className="grid grid-cols-4 gap-4">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(min(100%, 14rem), 1fr))",
+              gap: "0.875rem",
+              alignItems: "start",
+            }}
+          >
             {Object.entries(groupedTasks).map(([status, statusTasks]) => (
-              <div key={status} className="bg-gray-100 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900 capitalize">
+              <div
+                key={status}
+                style={{
+                  backgroundColor: COLUMN_COLORS[status],
+                  borderRadius: "0.625rem",
+                  padding: "0.875rem",
+                }}
+              >
+                {/* Column header */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      color: "#0f172a",
+                      margin: 0,
+                    }}
+                  >
                     {formatStatus(status)}
                   </h3>
-                  <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">
+                  <span
+                    style={{
+                      backgroundColor: "var(--app-card-muted)",
+                      color: "var(--app-heading)",
+                      fontSize: "0.7rem",
+                      padding: "0.125rem 0.5rem",
+                      borderRadius: "9999px",
+                      fontWeight: 600,
+                    }}
+                  >
                     {statusTasks.length}
                   </span>
                 </div>
-                <div className="space-y-3">
+
+                {/* Task cards */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.625rem",
+                  }}
+                >
                   {statusTasks.map((task) => (
                     <div
                       key={task._id}
-                      className="bg-white rounded-lg p-4 shadow-sm border border-gray-200"
+                      style={{
+                        backgroundColor: "var(--app-card)",
+                        borderRadius: "0.5rem",
+                        padding: "0.875rem",
+                        border: "1px solid var(--app-border)",
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                        position: "relative",
+                      }}
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 text-sm">
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          marginBottom: "0.375rem",
+                        }}
+                      >
+                        <h4
+                          style={{
+                            fontSize: "0.875rem",
+                            fontWeight: 600,
+                            color: "var(--app-heading)",
+                            margin: 0,
+                            flex: 1,
+                            marginRight: "0.5rem",
+                          }}
+                        >
                           {task.title}
                         </h4>
-                        <div className="relative group">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <MoreVertical className="w-4 h-4 text-gray-400" />
+                        {/* Task menu */}
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                          <button
+                            onClick={() =>
+                              setOpenTaskMenu(
+                                openTaskMenu === task._id ? null : task._id,
+                              )
+                            }
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: "0.125rem",
+                              color: "var(--app-text)",
+                              borderRadius: "0.25rem",
+                            }}
+                          >
+                            <MoreVertical size={14} />
                           </button>
-                          <div className="hidden group-hover:block absolute right-0 top-6 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-36 z-10">
-                            {status !== "done" && (
-                              <button
-                                onClick={() =>
-                                  handleUpdateTaskStatus(
-                                    task._id,
-                                    status === "todo"
-                                      ? "in_progress"
-                                      : status === "in_progress"
-                                        ? "in_review"
-                                        : "done",
-                                  )
-                                }
-                                className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                              >
-                                Move to Next
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleDeleteTask(task._id)}
-                              className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                          {openTaskMenu === task._id && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                right: 0,
+                                top: "1.5rem",
+                                backgroundColor: "var(--app-card)",
+                                borderRadius: "0.5rem",
+                                boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                                border: "1px solid var(--app-border)",
+                                width: "9rem",
+                                zIndex: 20,
+                              }}
                             >
-                              Delete
-                            </button>
-                          </div>
+                              {NEXT_STATUS[status] && (
+                                <button
+                                  onClick={() =>
+                                    handleUpdateTaskStatus(
+                                      task._id,
+                                      NEXT_STATUS[status],
+                                    )
+                                  }
+                                  style={taskMenuBtnStyle}
+                                >
+                                  Move to Next
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteTask(task._id)}
+                                style={{
+                                  ...taskMenuBtnStyle,
+                                  color: "#DC2626",
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
+
                       {task.description && (
-                        <p className="text-gray-500 text-xs mb-3 line-clamp-2">
+                        <p
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "var(--app-text)",
+                            margin: "0 0 0.5rem",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                          }}
+                        >
                           {task.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 flex-wrap">
+
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "0.375rem",
+                          marginBottom: "0.5rem",
+                        }}
+                      >
                         <span
-                          className={`text-xs px-2 py-1 rounded capitalize ${getPriorityColor(
-                            task.priority,
-                          )}`}
+                          style={{
+                            fontSize: "0.7rem",
+                            padding: "0.125rem 0.5rem",
+                            borderRadius: "9999px",
+                            textTransform: "capitalize",
+                            backgroundColor: PRIORITY_STYLES[task.priority]?.bg,
+                            color: PRIORITY_STYLES[task.priority]?.text,
+                          }}
                         >
                           {task.priority}
                         </span>
                         {task.category && (
-                          <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
+                          <span
+                            style={{
+                              fontSize: "0.7rem",
+                              padding: "0.125rem 0.5rem",
+                              borderRadius: "9999px",
+                              backgroundColor: "var(--app-primary-soft)",
+                              color: "var(--app-primary)",
+                            }}
+                          >
                             {task.category}
                           </span>
                         )}
                       </div>
+
                       {task.dueDate && (
-                        <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
-                          <Clock className="w-3 h-3" />
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.25rem",
+                            fontSize: "0.7rem",
+                            color: "var(--app-text)",
+                          }}
+                        >
+                          <Clock size={11} />
                           {new Date(task.dueDate).toLocaleDateString()}
                         </div>
                       )}
+
                       {task.assignees?.length > 0 && (
-                        <div className="flex items-center gap-1 mt-3">
-                          {task.assignees.slice(0, 3).map((assignee, idx) => (
+                        <div style={{ display: "flex", marginTop: "0.5rem" }}>
+                          {task.assignees.slice(0, 3).map((a, idx) => (
                             <div
-                              key={assignee._id || idx}
-                              className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium border-2 border-white -ml-1 first:ml-0"
-                              title={assignee.username || assignee.email}
+                              key={a._id || idx}
+                              style={{
+                                width: "1.5rem",
+                                height: "1.5rem",
+                                borderRadius: "50%",
+                                backgroundColor: "#3B82F6",
+                                border: "2px solid var(--app-card)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#fff",
+                                fontSize: "0.6rem",
+                                fontWeight: 600,
+                                marginLeft: idx === 0 ? 0 : "-0.4rem",
+                              }}
                             >
-                              {(assignee.username ||
-                                assignee.email ||
-                                "U")[0].toUpperCase()}
+                              {(a.username || a.email || "U")[0].toUpperCase()}
                             </div>
                           ))}
                         </div>
@@ -370,7 +646,14 @@ export default function ProjectDetail() {
                     </div>
                   ))}
                   {statusTasks.length === 0 && (
-                    <div className="text-center py-8 text-gray-400 text-sm">
+                    <div
+                      style={{
+                        textAlign: "center",
+                        padding: "2rem 0",
+                        color: "#707070",
+                        fontSize: "0.8125rem",
+                      }}
+                    >
                       No tasks
                     </div>
                   )}
@@ -380,141 +663,236 @@ export default function ProjectDetail() {
           </div>
         )}
 
+        {/* ── Team tab ── */}
         {activeTab === "team" && (
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Team Members</h3>
+          <div
+            style={{
+              backgroundColor: "var(--app-card)",
+              borderRadius: "0.625rem",
+              border: "1px solid var(--app-border)",
+              overflow: "hidden",
+              maxWidth: "40rem",
+            }}
+          >
+            <div
+              style={{
+                padding: "0.875rem 1rem",
+                borderBottom: "1px solid #E5E7EB",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, margin: 0 }}>
+                Team Members
+              </h3>
               {team.isOwner && (
                 <button
-                  onClick={handleGenerateInvite}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+                  onClick={() => setShowInviteModal(true)}
+                  style={primaryBtnStyle}
                 >
-                  <Plus className="w-4 h-4" />
-                  Invite Member
+                  <Plus size={14} /> Invite
                 </button>
               )}
             </div>
-            <div className="divide-y divide-gray-100">
+            <div>
               {/* Owner */}
               {team.owner && (
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-medium">
-                      {(team.owner.username ||
-                        team.owner.email ||
-                        "O")[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {team.owner.username || "Unknown"}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {team.owner.email}
-                      </div>
-                    </div>
-                  </div>
-                  <span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full font-medium">
-                    Owner
-                  </span>
-                </div>
+                <MemberRow
+                  name={team.owner.username || "Unknown"}
+                  email={team.owner.email}
+                  avatarColor="#7C3AED"
+                  badge={{ label: "Owner", bg: "#F3E8FF", text: "#7C3AED" }}
+                />
               )}
-              {/* Team Members */}
+              {/* Team members */}
               {team.team
                 ?.filter((m) => m._id !== team.owner?._id)
                 .map((member) => (
-                  <div
+                  <MemberRow
                     key={member._id}
-                    className="p-4 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
-                        {(member.user.username ||
-                          member.user.email ||
-                          "M")[0].toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {member.user.username || "Unknown"}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {member.user.email}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
-                        Member
-                      </span>
-                      {team.isOwner && (
+                    name={member.user.username || "Unknown"}
+                    email={member.user.email}
+                    avatarColor="#3B82F6"
+                    badge={{
+                      label: member.role,
+                      bg: "#F3F4F6",
+                      text: "#374151",
+                    }}
+                    action={
+                      team.isOwner ? (
                         <button
                           onClick={() => handleRemoveMember(member._id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "#EF4444",
+                            padding: "0.375rem",
+                            borderRadius: "0.375rem",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
                           title="Remove member"
                         >
-                          <UserMinus className="w-4 h-4" />
+                          <UserMinus size={15} />
                         </button>
-                      )}
-                    </div>
-                  </div>
+                      ) : null
+                    }
+                  />
                 ))}
             </div>
           </div>
         )}
       </div>
+
       {/* Create Task Modal */}
       <CreateTask
         open={showCreateTask}
         onClose={() => setShowCreateTask(false)}
         projectId={projectId}
+        canCreateTask={canCreateTask}
         onSuccess={fetchProjectData}
       />
+
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Invite Team Member</h3>
-              <button
-                onClick={() => {
-                  setShowInviteModal(false);
-                  setInviteLink("");
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-gray-500 text-sm mb-4">
-              Share this link with your team member to invite them to the
-              project.
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={inviteLink}
-                readOnly
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
-              />
-              <button
-                onClick={copyInviteLink}
-                className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2"
-              >
-                {linkCopied ? (
-                  <Check className="w-4 h-4" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-                {linkCopied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-            <p className="text-gray-400 text-xs mt-3">
-              This link will expire in 7 days.
-            </p>
+        <InviteModel
+          projectId={projectId}
+          onClose={() => setShowInviteModal(false)}
+        />
+      )}
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
+/* ─── Small helpers ─── */
+const primaryBtnStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.375rem",
+  padding: "0.45rem 0.875rem",
+  background: "linear-gradient(135deg, var(--app-primary), var(--app-accent))",
+  color: "#fff",
+  border: "none",
+  borderRadius: "0.5rem",
+  cursor: "pointer",
+  fontSize: "0.8125rem",
+  fontWeight: 500,
+  whiteSpace: "nowrap",
+};
+const outlineBtnStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.375rem",
+  padding: "0.45rem 0.875rem",
+  backgroundColor: "var(--app-card)",
+  color: "var(--app-heading)",
+  border: "1px solid var(--app-border)",
+  borderRadius: "0.5rem",
+  cursor: "pointer",
+  fontSize: "0.8125rem",
+  fontWeight: 500,
+  whiteSpace: "nowrap",
+};
+const taskMenuBtnStyle = {
+  width: "100%",
+  display: "flex",
+  alignItems: "center",
+  padding: "0.5rem 0.75rem",
+  background: "none",
+  border: "none",
+  fontSize: "0.8125rem",
+  color: "var(--app-heading)",
+  cursor: "pointer",
+  textAlign: "left",
+};
+
+function MemberRow({ name, email, avatarColor, badge, action }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0.875rem 1rem",
+        borderBottom: "1px solid var(--app-border)",
+        gap: "0.75rem",
+        flexWrap: "wrap",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem",
+          minWidth: 0,
+        }}
+      >
+        <div
+          style={{
+            width: "2.25rem",
+            height: "2.25rem",
+            borderRadius: "50%",
+            backgroundColor: avatarColor,
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: "0.875rem",
+          }}
+        >
+          {(name || "?")[0].toUpperCase()}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: "0.9375rem",
+              fontWeight: 500,
+              color: "var(--app-heading)",
+            }}
+          >
+            {name}
+          </div>
+          <div
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--app-text)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {email}
           </div>
         </div>
-      )}
-      {/* Team Members
-      <TeamMembersDashboard /> */}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            padding: "0.2rem 0.625rem",
+            borderRadius: "9999px",
+            fontSize: "0.8125rem",
+            fontWeight: 500,
+            backgroundColor: badge.bg,
+            color: badge.text,
+          }}
+        >
+          {badge.label}
+        </span>
+        {action}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,27 @@
 const BASE_URL = import.meta.env.VITE_BASE_URL;
+// Central fetch wrapper — auto-refreshes on 401
+const apiFetch = async (url, options = {}) => {
+  let response = await fetch(url, { credentials: "include", ...options });
 
+  if (response.status === 401) {
+    // Try to refresh the token
+    const refreshRes = await fetch(`${BASE_URL}/refresh`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!refreshRes.ok) {
+      // Refresh failed — session truly expired, redirect to login
+      window.location.href = "/login";
+      throw new Error("Session expired");
+    }
+
+    // Retry the original request once
+    response = await fetch(url, { credentials: "include", ...options });
+  }
+
+  return response;
+};
 // ==================== PROJECT APIs ====================
 //Verify OTP 
 export const verifyOTP = async (email, otp) => {
@@ -39,7 +61,7 @@ export const resendOTP = async (email) => {
 // Fetch all Projects
 export const getProjects = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/project-data`, {
+    const response = await apiFetch(`${BASE_URL}/project-data`, {
       method: "GET",
       credentials: "include", 
     });
@@ -57,7 +79,7 @@ export const getProjects = async () => {
 // Get single project by ID
 export const getProjectById = async (projectId) => {
   try {
-    const response = await fetch(`${BASE_URL}/project/${projectId}`, {
+    const response = await apiFetch(`${BASE_URL}/project/${projectId}`, {
       method: "GET",
       credentials: "include",
     });
@@ -74,7 +96,7 @@ export const getProjectById = async (projectId) => {
 // Create new project
 export const createProject = async (projectData) => {
   try {
-    const response = await fetch(`${BASE_URL}/project`, {
+    const response = await apiFetch(`${BASE_URL}/project`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -95,7 +117,7 @@ export const createProject = async (projectData) => {
 // Update project
 export const updateProject = async (projectId, updates) => {
   try {
-    const response = await fetch(`${BASE_URL}/project/${projectId}`, {
+    const response = await apiFetch(`${BASE_URL}/project/${projectId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -116,7 +138,7 @@ export const updateProject = async (projectId, updates) => {
 // Update project status
 export const updateProjectStatus = async (projectId, status) => {
   try {
-    const response = await fetch(`${BASE_URL}/project/${projectId}/status`, {
+    const response = await apiFetch(`${BASE_URL}/project/${projectId}/status`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -137,7 +159,7 @@ export const updateProjectStatus = async (projectId, status) => {
 // Delete project
 export const deleteProject = async (projectId) => {
   try {
-    const response = await fetch(`${BASE_URL}/project/${projectId}`, {
+    const response = await apiFetch(`${BASE_URL}/project/${projectId}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -156,7 +178,7 @@ export const deleteProject = async (projectId) => {
 // Get project team
 export const getProjectTeam = async (projectId) => {
   try {
-    const response = await fetch(`${BASE_URL}/project/${projectId}/team`, {
+    const response = await apiFetch(`${BASE_URL}/project/${projectId}/team`, {
       method: "GET",
       credentials: "include",
     });
@@ -173,7 +195,7 @@ export const getProjectTeam = async (projectId) => {
 // Remove team member
 export const removeTeamMember = async (projectId, memberId) => {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       `${BASE_URL}/project/${projectId}/team/${memberId}`,
       {
         method: "DELETE",
@@ -193,14 +215,14 @@ export const removeTeamMember = async (projectId, memberId) => {
 // ==================== INVITE APIs ====================
 
 // Generate invite link
-export const generateInviteLink = async (projectId, options = {}) => {
+export const generateInviteLink = async (projectId, role = "viewer") => {
   try {
-    const response = await fetch(`${BASE_URL}/project/${projectId}/invite`, {
+    const response = await apiFetch(`${BASE_URL}/project/${projectId}/invite`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(options),
+      body: JSON.stringify({role}),
       credentials: "include",
     });
     if (!response.ok) {
@@ -216,7 +238,7 @@ export const generateInviteLink = async (projectId, options = {}) => {
 // Get invite info (for preview)
 export const getInviteInfo = async (inviteCode) => {
   try {
-    const response = await fetch(`${BASE_URL}/invite/${inviteCode}`, {
+    const response = await apiFetch(`${BASE_URL}/invite/${inviteCode}`, {
       method: "GET",
       credentials: "include",
     });
@@ -233,7 +255,7 @@ export const getInviteInfo = async (inviteCode) => {
 // Join via invite
 export const joinViaInvite = async (inviteCode) => {
   try {
-    const response = await fetch(`${BASE_URL}/invite/${inviteCode}/join`, {
+    const response = await apiFetch(`${BASE_URL}/invite/${inviteCode}/join`, {
       method: "POST",
       credentials: "include",
     });
@@ -253,12 +275,15 @@ export const joinViaInvite = async (inviteCode) => {
 // Create task
 export const createTask = async (taskData) => {
   try {
-    const response = await fetch(`${BASE_URL}/task`, {
+    const isFormData = taskData instanceof FormData;
+    const response = await apiFetch(`${BASE_URL}/task`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(taskData),
+      headers: isFormData
+        ? undefined
+        : {
+            "Content-Type": "application/json",
+          },
+      body: isFormData ? taskData : JSON.stringify(taskData),
       credentials: "include",
     });
     if (!response.ok) {
@@ -274,7 +299,7 @@ export const createTask = async (taskData) => {
 // Get all user's tasks
 export const getMyTasks = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/tasks`, {
+    const response = await apiFetch(`${BASE_URL}/tasks`, {
       method: "GET",
       credentials: "include",
     });
@@ -291,7 +316,7 @@ export const getMyTasks = async () => {
 // Get tasks by project
 export const getTasksByProject = async (projectId) => {
   try {
-    const response = await fetch(`${BASE_URL}/project/${projectId}/tasks`, {
+    const response = await apiFetch(`${BASE_URL}/project/${projectId}/tasks`, {
       method: "GET",
       credentials: "include",
     });
@@ -308,7 +333,7 @@ export const getTasksByProject = async (projectId) => {
 // Get task by ID
 export const getTaskById = async (taskId) => {
   try {
-    const response = await fetch(`${BASE_URL}/task/${taskId}`, {
+    const response = await apiFetch(`${BASE_URL}/task/${taskId}`, {
       method: "GET",
       credentials: "include",
     });
@@ -325,7 +350,7 @@ export const getTaskById = async (taskId) => {
 // Update task
 export const updateTask = async (taskId, updates) => {
   try {
-    const response = await fetch(`${BASE_URL}/task/${taskId}`, {
+    const response = await apiFetch(`${BASE_URL}/task/${taskId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -346,7 +371,7 @@ export const updateTask = async (taskId, updates) => {
 // Update task status
 export const updateTaskStatus = async (taskId, status) => {
   try {
-    const response = await fetch(`${BASE_URL}/task/${taskId}/status`, {
+    const response = await apiFetch(`${BASE_URL}/task/${taskId}/status`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -367,7 +392,7 @@ export const updateTaskStatus = async (taskId, status) => {
 // Delete task
 export const deleteTask = async (taskId) => {
   try {
-    const response = await fetch(`${BASE_URL}/task/${taskId}`, {
+    const response = await apiFetch(`${BASE_URL}/task/${taskId}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -377,6 +402,106 @@ export const deleteTask = async (taskId) => {
     return await response.json();
   } catch (error) {
     console.error("API Error (deleteTask):", error);
+    throw error;
+  }
+};
+
+// ==================== NOTIFICATION APIs ====================
+
+export const getNotifications = async ({
+  type = "all",
+  read,
+  page = 1,
+  limit = 30,
+} = {}) => {
+  try {
+    const params = new URLSearchParams({
+      type,
+      page: String(page),
+      limit: String(limit),
+    });
+
+    if (read !== undefined) {
+      params.set("read", String(read));
+    }
+
+    const response = await apiFetch(`${BASE_URL}/notifications?${params}`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch notifications");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (getNotifications):", error);
+    throw error;
+  }
+};
+
+export const getUnreadNotificationCount = async () => {
+  try {
+    const response = await apiFetch(`${BASE_URL}/notifications/unread-count`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch unread notification count");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (getUnreadNotificationCount):", error);
+    throw error;
+  }
+};
+
+export const markNotificationRead = async (notificationId) => {
+  try {
+    const response = await apiFetch(
+      `${BASE_URL}/notifications/${notificationId}/read`,
+      {
+        method: "PATCH",
+        credentials: "include",
+      },
+    );
+    if (!response.ok) {
+      throw new Error("Failed to mark notification as read");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (markNotificationRead):", error);
+    throw error;
+  }
+};
+
+export const markAllNotificationsRead = async () => {
+  try {
+    const response = await apiFetch(`${BASE_URL}/notifications/read-all`, {
+      method: "PATCH",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to mark notifications as read");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (markAllNotificationsRead):", error);
+    throw error;
+  }
+};
+
+export const deleteNotification = async (notificationId) => {
+  try {
+    const response = await apiFetch(`${BASE_URL}/notifications/${notificationId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to delete notification");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("API Error (deleteNotification):", error);
     throw error;
   }
 };

@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
-import { X, Calendar } from "lucide-react";
+import { X, Calendar, Paperclip } from "lucide-react";
 import { createTask, getProjects, getProjectTeam } from "../api/ApiBuilder";
 import { toast } from "react-toastify";
+import { useAuth } from "../Context/AuthContext";
 
-export default function CreateTask({ open, onClose, projectId, onSuccess }) {
+export default function CreateTask({
+  open,
+  onClose,
+  projectId,
+  canCreateTask,
+  onSuccess,
+}) {
+  const { user } = useAuth();
   const [projects, setProjects] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
+  const [projectAccess, setProjectAccess] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -15,10 +24,12 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
     assignees: [],
     project: projectId || "",
     category: "General",
+    attachments: [],
   });
 
   useEffect(() => {
     if (open) {
+      if (!user?._id) return;
       fetchProjects();
       if (projectId) {
         setFormData((prev) => ({ ...prev, project: projectId }));
@@ -29,14 +40,44 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
 
   useEffect(() => {
     if (formData.project) {
+      setProjectAccess(null);
       fetchTeamMembers(formData.project);
     }
   }, [formData.project]);
 
+  const getMemberUser = (member) =>
+    typeof member.user === "object" && member.user !== null ? member.user : member;
+
+  const getMemberUserId = (member) => getMemberUser(member)?._id || member.user || member._id;
+
+  const canCreateSelectedProjectTask =
+    canCreateTask ?? projectAccess?.canCreate ?? !formData.project;
+
+  const userCanCreateTask = (teamData) => {
+    const currentMember = teamData.team?.find(
+      (member) => getMemberUserId(member) === user?._id,
+    );
+    const currentRole = currentMember?.role?.toLowerCase();
+
+    return teamData.isOwner || currentRole === "owner" || currentRole === "manager";
+  };
+
   const fetchProjects = async () => {
     try {
       const data = await getProjects();
-      setProjects(data);
+      const projectsWithAccess = await Promise.all(
+        data.map(async (project) => {
+          try {
+            const teamData = await getProjectTeam(project._id);
+            return userCanCreateTask(teamData) ? project : null;
+          } catch (error) {
+            console.error("Failed to check project access:", error);
+            return null;
+          }
+        }),
+      );
+
+      setProjects(projectsWithAccess.filter(Boolean));
     } catch (error) {
       console.error("Failed to fetch projects:", error);
     }
@@ -46,8 +87,12 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
     try {
       const data = await getProjectTeam(projId);
       setTeamMembers(data.team || []);
+      setProjectAccess({
+        canCreate: userCanCreateTask(data),
+      });
     } catch (error) {
       console.error("Failed to fetch team:", error);
+      setProjectAccess(null);
     }
   };
 
@@ -59,9 +104,14 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
       return;
     }
 
+    if (!canCreateSelectedProjectTask) {
+      toast.error("Only project owners and managers can add tasks");
+      return;
+    }
+
     setLoading(true);
     try {
-      await createTask({
+      const taskPayload = {
         title: formData.title,
         description: formData.description,
         priority: formData.priority.toLowerCase(),
@@ -69,7 +119,24 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
         project: formData.project,
         assignees: formData.assignees,
         category: formData.category,
-      });
+      };
+
+      if (formData.attachments.length > 0) {
+        const multipartData = new FormData();
+        Object.entries(taskPayload).forEach(([key, value]) => {
+          multipartData.append(
+            key,
+            Array.isArray(value) ? JSON.stringify(value) : value ?? "",
+          );
+        });
+        formData.attachments.forEach((file) => {
+          multipartData.append("attachments", file);
+        });
+
+        await createTask(multipartData);
+      } else {
+        await createTask(taskPayload);
+      }
       toast.success("Task created successfully!");
       setFormData({
         title: "",
@@ -79,10 +146,11 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
         assignees: [],
         project: projectId || "",
         category: "General",
+        attachments: [],
       });
       onClose();
       if (onSuccess) onSuccess();
-    } catch (error) {
+    } catch {
       toast.error("Failed to create task");
     } finally {
       setLoading(false);
@@ -95,6 +163,13 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
       assignees: prev.assignees.includes(memberId)
         ? prev.assignees.filter((id) => id !== memberId)
         : [...prev.assignees, memberId],
+    }));
+  };
+
+  const handleAttachmentChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      attachments: Array.from(e.target.files || []),
     }));
   };
 
@@ -132,7 +207,11 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
               <select
                 value={formData.project}
                 onChange={(e) =>
-                  setFormData({ ...formData, project: e.target.value, assignees: [] })
+                  setFormData({
+                    ...formData,
+                    project: e.target.value,
+                    assignees: [],
+                  })
                 }
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                 required
@@ -143,6 +222,11 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
                     {project.title}
                   </option>
                 ))}
+                {projects.length === 0 && (
+                  <option value="" disabled>
+                    No projects available
+                  </option>
+                )}
               </select>
             </div>
           )}
@@ -260,6 +344,47 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
             />
           </div>
 
+          {/* Attachments */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Attachments
+            </label>
+            <label className="flex items-center gap-3 px-4 py-3 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+              <Paperclip size={18} className="text-gray-500" />
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-gray-800">
+                  Add files
+                </div>
+                <div className="text-xs text-gray-500 truncate">
+                  {formData.attachments.length > 0
+                    ? `${formData.attachments.length} file${
+                        formData.attachments.length > 1 ? "s" : ""
+                      } selected`
+                    : "Upload task attachments"}
+                </div>
+              </div>
+              <input
+                type="file"
+                multiple
+                onChange={handleAttachmentChange}
+                className="hidden"
+              />
+            </label>
+            {formData.attachments.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {formData.attachments.map((file) => (
+                  <div
+                    key={`${file.name}-${file.size}`}
+                    className="text-xs text-gray-600 truncate"
+                    title={file.name}
+                  >
+                    {file.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Assignees */}
           {formData.project && teamMembers.length > 0 && (
             <div>
@@ -267,28 +392,37 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
                 Assign To
               </label>
               <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
-                {teamMembers.map((member) => (
-                  <label
-                    key={member._id}
-                    className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.assignees.includes(member._id)}
-                      onChange={() => handleAssigneeToggle(member._id)}
-                      className="w-4 h-4 rounded"
-                    />
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                      {(member.username || member.email || "U")[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {member.username || "Unknown"}
+                {teamMembers.map((member) => {
+                  const memberUser = getMemberUser(member);
+                  const memberId = getMemberUserId(member);
+                  const memberName =
+                    memberUser?.username || memberUser?.email || "Unknown";
+
+                  return (
+                    <label
+                      key={member._id || memberId}
+                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.assignees.includes(memberId)}
+                        onChange={() => handleAssigneeToggle(memberId)}
+                        className="w-4 h-4 rounded"
+                      />
+                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                        {memberName[0].toUpperCase()}
                       </div>
-                      <div className="text-xs text-gray-500">{member.email}</div>
-                    </div>
-                  </label>
-                ))}
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {memberName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {memberUser?.email}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -304,7 +438,7 @@ export default function CreateTask({ open, onClose, projectId, onSuccess }) {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !canCreateSelectedProjectTask}
               className="px-6 py-2.5 text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors font-medium disabled:opacity-50"
             >
               {loading ? "Creating..." : "Create Task"}
